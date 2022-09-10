@@ -1,4 +1,4 @@
-package com.server;
+package com.server.util;
 
 public class Card {
     public String Name;

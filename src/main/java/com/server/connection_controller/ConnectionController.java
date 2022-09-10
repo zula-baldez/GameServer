@@ -1,6 +1,6 @@
 package com.server.connection_controller;
 
-import com.server.Player;
+import com.server.util.Player;
 import com.server.rooms.RoomHandler;
 import com.server.util.RoomListAnswer;
 import com.server.util.RegisterAnswer;

@@ -1,10 +1,9 @@
-package logic;
+package com.server.logic;
 
-import com.server.Card;
-import com.server.Suit;
+import com.server.util.Card;
+import com.server.util.Suit;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 

@@ -1,4 +1,6 @@
-package com.server;
+package com.server.util;
+
+import com.server.util.Card;
 
 import java.util.List;
 

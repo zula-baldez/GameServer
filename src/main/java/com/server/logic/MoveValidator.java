@@ -1,9 +1,4 @@
-package logic;
-
-import com.server.Card;
-import com.server.Player;
-import com.server.Suit;
-import org.springframework.beans.factory.annotation.Autowired;
+package com.server.logic;
 
 public class MoveValidator {
 /*

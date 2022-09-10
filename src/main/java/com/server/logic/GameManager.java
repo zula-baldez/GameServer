@@ -1,6 +1,5 @@
-package logic;
+package com.server.logic;
 
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,6 +1,6 @@
 package com.server.rooms;
 
-import com.server.Player;
+import com.server.util.Player;
 import com.server.util.ResponseCode;
 
 import java.util.ArrayList;

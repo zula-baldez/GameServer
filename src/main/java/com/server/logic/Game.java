@@ -1,8 +1,8 @@
-package logic;
+package com.server.logic;
 
-import com.server.Card;
-import com.server.Player;
-import com.server.Suit;
+import com.server.util.Card;
+import com.server.util.Player;
+import com.server.util.Suit;
 
 import java.util.ArrayList;
 import java.util.List;
