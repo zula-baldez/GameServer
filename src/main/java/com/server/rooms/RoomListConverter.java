@@ -1,15 +1,15 @@
-package com.server.util;
+package com.server.rooms;
 
 import com.server.rooms.Room;
-import com.server.asnwers.RoomInfo;
+import com.server.rooms.RoomInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RoomListAnswer {
+public class RoomListConverter {
     private List<RoomInfo> roomsInfo = new ArrayList<>();
 
-    public RoomListAnswer(List<Room> rooms) {
+    public RoomListConverter(List<Room> rooms) {
         for (Room room : rooms) {
             RoomInfo roomInfo=  new RoomInfo(room.getMaxPlayers(), room.getAmountOfPlayers(), room.getName(), room.getId());
             roomsInfo.add(roomInfo);

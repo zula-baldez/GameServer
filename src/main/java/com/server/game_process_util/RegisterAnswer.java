@@ -1,4 +1,4 @@
-package com.server.util;
+package com.server.game_process_util;
 
 public class RegisterAnswer {
     private int id;

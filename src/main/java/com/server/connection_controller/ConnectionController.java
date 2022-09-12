@@ -1,10 +1,10 @@
 package com.server.connection_controller;
 
-import com.server.util.Player;
+import com.server.game_process_util.Player;
 import com.server.rooms.RoomHandler;
-import com.server.util.RoomListAnswer;
-import com.server.util.RegisterAnswer;
-import com.server.asnwers.RoomInfo;
+import com.server.rooms.RoomListConverter;
+import com.server.game_process_util.RegisterAnswer;
+import com.server.rooms.RoomInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +19,9 @@ import java.util.Set;
 @RestController
 @Configuration
 @ComponentScan
+/*
+    /connection handler
+*/
 public class ConnectionController {
     private Set<Integer> registeredId = new HashSet<>();
     private static int ID = 0;
@@ -29,8 +32,8 @@ public class ConnectionController {
     public List<RoomInfo> roomList() {
         roomHandler.createRoom(10, "Turnir");
 
-        RoomListAnswer roomListAnswer = new RoomListAnswer(roomHandler.getRooms());
-        return roomListAnswer.getRoomsInfo();
+        RoomListConverter roomListConverter = new RoomListConverter(roomHandler.getRooms());
+        return roomListConverter.getRoomsInfo();
     }
 
 

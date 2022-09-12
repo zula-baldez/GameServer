@@ -1,6 +1,4 @@
-package com.server.util;
-
-import com.server.util.Card;
+package com.server.game_process_util;
 
 import java.util.List;
 
@@ -42,6 +40,10 @@ public class Player {
 
     public void setFines(int fines) {
         this.fines = fines;
+    }
+
+    public void addFine() {
+        fines++;
     }
 
     public boolean isEnemy() {

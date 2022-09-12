@@ -1,4 +1,4 @@
-package com.server.asnwers;
+package com.server.rooms;
 
 import java.util.List;
 

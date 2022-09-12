@@ -1,6 +1,6 @@
 package com.server.rooms;
 
-import com.server.util.Player;
+import com.server.game_process_util.Player;
 import com.server.util.ResponseCode;
 
 import java.util.ArrayList;
@@ -11,10 +11,11 @@ public class Room {
     private int maxPlayers;
     private List<Player> players = new ArrayList<>();
     int id;
+
     public Room(int amountOfPlayers, int maxPlayers, String name, int id) {
         this.name = name;
-        this.maxPlayers =maxPlayers;
-        this.name  = name;
+        this.maxPlayers = maxPlayers;
+        this.name = name;
         this.id = id;
     }
 
@@ -29,8 +30,9 @@ public class Room {
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
     }
+
     public ResponseCode addPlayer(Player player) {
-        if(getMaxPlayers() == getAmountOfPlayers()) {
+        if (getMaxPlayers() == getAmountOfPlayers()) {
             return ResponseCode.ERROR;
         } else {
             players.add(player);
