@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GameManager {
-    private final Game game;
+    private Game game;
     private MoveValidator moveValidator;
     private final int turn = 0;
 

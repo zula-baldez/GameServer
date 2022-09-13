@@ -23,15 +23,16 @@ import java.util.Set;
     /connection handler
 */
 public class ConnectionController {
-    private Set<Integer> registeredId = new HashSet<>();
+    private final Set<Integer> registeredId = new HashSet<>();
+
+
     private static int ID = 0;
     @Autowired
     private RoomHandler roomHandler;
-    @ResponseBody
-    @RequestMapping(value = "/connection/roomlist", method = RequestMethod.GET)
-    public List<RoomInfo> roomList() {
-        roomHandler.createRoom(10, "Turnir");
 
+    @ResponseBody
+    @RequestMapping(value = "/connection/room_list", method = RequestMethod.GET)
+    public List<RoomInfo> roomList() {
         RoomListConverter roomListConverter = new RoomListConverter(roomHandler.getRooms());
         return roomListConverter.getRoomsInfo();
     }
@@ -46,9 +47,9 @@ public class ConnectionController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/connection/enterroom", method = RequestMethod.GET)
+    @RequestMapping(value = "/connection/enter_room", method = RequestMethod.GET)
     public ResponseEntity enterRoom(@RequestParam int id, @RequestParam int roomId) {
-        if(!registeredId.contains(id) && roomHandler.getRoomById(roomId) != null) {
+        if (!registeredId.contains(id) && roomHandler.getRoomById(roomId) != null) {
             registeredId.add(id);
             roomHandler.getRoomById(roomId).addPlayer(new Player(id));
 
@@ -58,5 +59,16 @@ public class ConnectionController {
     }
 
 
+    @ResponseBody
+    @RequestMapping(value = "/connection/create_room", method = RequestMethod.GET)
+    public ResponseEntity createRoom(@RequestParam int maxPlayerNumber, @RequestParam String name) {
+        try {
+            roomHandler.createRoom(maxPlayerNumber, name);
+
+            return ResponseEntity.status(200).body("Ok");
+        } catch (Throwable e) {
+            return ResponseEntity.status(400).body(e.getMessage()); //todo система ошибок при обработке запросов
+        }
+}
 
 }
