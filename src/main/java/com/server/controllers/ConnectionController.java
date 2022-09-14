@@ -1,4 +1,4 @@
-package com.server.connection_controller;
+package com.server.controllers;
 
 import com.server.game_process_util.Player;
 import com.server.rooms.RoomHandler;

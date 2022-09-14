@@ -1,6 +1,10 @@
 package com.server.game_process;
 
-import com.server.game_process_util.*;
+import com.server.game_process_util.Card;
+import com.server.game_process_util.FieldType;
+import com.server.game_process_util.Player;
+import com.server.game_process_util.Suit;
+import com.server.game_process_util.ValidationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
