@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MoveValidator {
-
+/*
     @Autowired
     private GameManager gameManager;
 
@@ -51,7 +51,7 @@ public class MoveValidator {
 
 
         return new ValidationResponse(true, true);
-    }
+    }*/
 
 
 }

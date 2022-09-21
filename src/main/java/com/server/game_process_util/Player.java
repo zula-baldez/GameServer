@@ -1,5 +1,6 @@
 package com.server.game_process_util;
 
+
 import java.util.List;
 
 public class Player {
@@ -10,6 +11,7 @@ public class Player {
     private boolean isEnemy = true;
     private int AmountOfPenki = 2;
     private boolean HasCardFromDeck = false;
+    private boolean isHost = false;
     public Player(int id) {
         this.id = id;
     }
@@ -42,6 +44,7 @@ public class Player {
         this.fines = fines;
     }
 
+
     public void addFine() {
         fines++;
     }
@@ -72,5 +75,13 @@ public class Player {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public boolean isHost() {
+        return isHost;
+    }
+
+    public void setHost(boolean host) {
+        isHost = host;
     }
 }

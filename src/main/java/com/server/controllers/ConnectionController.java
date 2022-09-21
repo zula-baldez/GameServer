@@ -1,5 +1,7 @@
 package com.server.controllers;
 
+import com.server.database.PlayersHandler;
+import com.server.exception.NoSuchPlayerException;
 import com.server.game_process_util.Player;
 import com.server.rooms.RoomHandler;
 import com.server.rooms.RoomListConverter;
@@ -11,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +27,7 @@ import java.util.Set;
 */
 public class ConnectionController {
     private final Set<Integer> registeredId = new HashSet<>();
-
+    private PlayersHandler playersHandler = new PlayersHandler();
 
     private static int ID = 0;
     @Autowired
@@ -43,6 +46,8 @@ public class ConnectionController {
     @RequestMapping(value = "/connection/register", method = RequestMethod.GET)
     public RegisterAnswer register() {
         ID++;
+        Player player = new Player(ID);
+        playersHandler.addPlayer(player);
         return new RegisterAnswer(ID);
     }
 
@@ -51,9 +56,14 @@ public class ConnectionController {
     public ResponseEntity enterRoom(@RequestParam int id, @RequestParam int roomId) {
         if (!registeredId.contains(id) && roomHandler.getRoomById(roomId) != null) {
             registeredId.add(id);
-            roomHandler.getRoomById(roomId).addPlayer(new Player(id));
-
-            return ResponseEntity.status(200).body("Ok");
+            try {
+                Player player = playersHandler.getPlayerById(id);
+                player.setHost(true);
+                roomHandler.getRoomById(roomId).addPlayer(playersHandler.getPlayerById(id));
+                return ResponseEntity.status(200).body("Ok");
+            } catch (NoSuchPlayerException e) {
+                return ResponseEntity.status(400).body("Check your id!");
+            }
 
         } else return ResponseEntity.status(400).body("Wrong query");
     }
@@ -61,7 +71,7 @@ public class ConnectionController {
 
     @ResponseBody
     @RequestMapping(value = "/connection/create_room", method = RequestMethod.GET)
-    public ResponseEntity createRoom(@RequestParam int maxPlayerNumber, @RequestParam String name) {
+    public ResponseEntity createRoom(@RequestParam int maxPlayerNumber, @RequestParam String name, @RequestParam int playerId) {
         try {
             roomHandler.createRoom(maxPlayerNumber, name);
 
@@ -70,5 +80,6 @@ public class ConnectionController {
             return ResponseEntity.status(400).body(e.getMessage()); //todo система ошибок при обработке запросов
         }
 }
+
 
 }
