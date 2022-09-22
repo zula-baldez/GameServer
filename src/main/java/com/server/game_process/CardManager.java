@@ -6,7 +6,7 @@ import com.server.game_process_util.Suit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+//class that creates shaffled deck for game
 public class CardManager {
     private static final int CARD_NUMBER = 14;
 

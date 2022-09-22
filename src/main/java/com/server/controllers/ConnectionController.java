@@ -3,9 +3,9 @@ package com.server.controllers;
 import com.server.database.PlayersHandler;
 import com.server.exception.NoSuchPlayerException;
 import com.server.game_process_util.Player;
+import com.server.game_process_util.RegisterAnswer;
 import com.server.rooms.RoomHandler;
 import com.server.rooms.RoomListConverter;
-import com.server.game_process_util.RegisterAnswer;
 import com.server.rooms.RoomInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,15 +19,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
+/*
+    connection handler
+    handle room connecting and other similar staff
+    all
+*/
 @RestController
 @Configuration
 @ComponentScan
-/*
-    /connection handler
-*/
 public class ConnectionController {
     private final Set<Integer> registeredId = new HashSet<>();
-    private PlayersHandler playersHandler = new PlayersHandler();
+    private final PlayersHandler playersHandler = new PlayersHandler();
 
     private static int ID = 0;
     @Autowired

@@ -6,6 +6,9 @@ import com.server.game_process_util.Player;
 import java.util.ArrayList;
 import java.util.List;
 //todo нормальную бд
+//handles all the info about players(without their rooms)
+//when peplix connect, instance of class Player creates and saves in this class
+
 public class PlayersHandler {
     private final List<Player> players = new ArrayList<>();
     public Player getPlayerById(int id) throws NoSuchPlayerException {

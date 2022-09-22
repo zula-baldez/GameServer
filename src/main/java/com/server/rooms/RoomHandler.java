@@ -24,7 +24,7 @@ public class RoomHandler {
     public Room getRoomById(int id) {
         for (Room room:
              rooms) {
-           if(room.id == id) return room;
+           if(room.getId() == id) return room;
         }
         return null;
     }

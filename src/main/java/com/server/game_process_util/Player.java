@@ -1,17 +1,20 @@
 package com.server.game_process_util;
 
 
+import org.springframework.web.context.request.async.DeferredResult;
+
 import java.util.List;
 
 public class Player {
     private int id;
-    private String Name;
-    private List<Card> PlayerHand;
+    private String name;
+    private List<Card> playerHand;
     private int fines = 0;
     private boolean isEnemy = true;
-    private int AmountOfPenki = 2;
-    private boolean HasCardFromDeck = false;
+    private int amountOfPenki = 2;
+    private boolean hasCardFromDeck = false;
     private boolean isHost = false;
+    private DeferredResult<Action> deferredResult;
     public Player(int id) {
         this.id = id;
     }
@@ -21,19 +24,27 @@ public class Player {
     }
 
     public String getName() {
-        return Name;
+        return name;
+    }
+
+    public DeferredResult<Action> getDeferredResult() {
+        return deferredResult;
+    }
+
+    public void setDeferredResult(DeferredResult<Action> deferredResult) {
+        this.deferredResult = deferredResult;
     }
 
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 
     public List<Card> getPlayerHand() {
-        return PlayerHand;
+        return playerHand;
     }
 
     public void setPlayerHand(List<Card> playerHand) {
-        PlayerHand = playerHand;
+        this.playerHand = playerHand;
     }
 
     public int getFines() {
@@ -58,19 +69,19 @@ public class Player {
     }
 
     public int getAmountOfPenki() {
-        return AmountOfPenki;
+        return amountOfPenki;
     }
 
     public void setAmountOfPenki(int amountOfPenki) {
-        AmountOfPenki = amountOfPenki;
+        this.amountOfPenki = amountOfPenki;
     }
 
     public boolean isHasCardFromDeck() {
-        return HasCardFromDeck;
+        return hasCardFromDeck;
     }
 
     public void setHasCardFromDeck(boolean hasCardFromDeck) {
-        HasCardFromDeck = hasCardFromDeck;
+        this.hasCardFromDeck = hasCardFromDeck;
     }
 
     public void setId(int id) {

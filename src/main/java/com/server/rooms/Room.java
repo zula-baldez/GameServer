@@ -1,27 +1,19 @@
 package com.server.rooms;
 
-import com.server.game_process.CardManager;
+import com.server.exception.NoSuchPlayerException;
 import com.server.game_process.GameManager;
-import com.server.game_process_util.Card;
 import com.server.game_process_util.Player;
-import com.server.game_process_util.Suit;
 import com.server.util.ResponseCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Room {
-    private GameManager gameManager;
     private String name;
     private int maxPlayers;
     private List<Player> players = new ArrayList<>();
-    int id;
-    private final List<Card> field = new ArrayList<>();
-
-    private final Suit kozir = Suit.PICK;
-    private final List<Card> deck = CardManager.getDeck();
-
-
+    private int id;
+    private GameManager gameManager = new GameManager(this);
     public int getPlayersNumber() {
         return players.size();
     }
@@ -50,19 +42,21 @@ public class Room {
         } else {
             players.add(player);
             if(getMaxPlayers() == getAmountOfPlayers()) {
-                startGame();
+                gameManager.startGame();
             }
             return ResponseCode.OK;
         }
 
 
     }
-    public void startGame() {
-        gameManager = new GameManager(this);
-        gameManager.startGame();
+
+
+    public Player getPlayerById(int id) throws NoSuchPlayerException {
+        for(Player player : players) {
+            if(player.getId() == id) return player;
+        }
+        throw new NoSuchPlayerException();
     }
-
-
     public String getName() {
         return name;
     }
