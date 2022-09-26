@@ -1,4 +1,6 @@
-package com.server.game_process_util;
+package com.server.game.process.data;
+
+import com.server.game.process.util.Card;
 
 import java.util.List;
 

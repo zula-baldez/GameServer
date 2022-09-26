@@ -1,7 +1,7 @@
-package com.server.game_process;
+package com.server.game.process;
 
-import com.server.game_process_util.Card;
-import com.server.game_process_util.Suit;
+import com.server.game.process.util.Card;
+import com.server.game.process.data.Suit;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,7 +1,7 @@
 package com.server.rooms;
 
 import com.server.exception.EnterRoomException;
-import com.server.game_process_util.Player;
+import com.server.game.process.util.Player;
 import com.server.util.ResponseCode;
 import org.springframework.stereotype.Component;
 

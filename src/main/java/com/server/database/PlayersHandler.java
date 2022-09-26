@@ -1,7 +1,7 @@
 package com.server.database;
 
 import com.server.exception.NoSuchPlayerException;
-import com.server.game_process_util.Player;
+import com.server.game.process.util.Player;
 
 import java.util.ArrayList;
 import java.util.List;

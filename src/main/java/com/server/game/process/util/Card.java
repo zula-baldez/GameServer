@@ -1,4 +1,6 @@
-package com.server.game_process_util;
+package com.server.game.process.util;
+
+import com.server.game.process.data.Suit;
 
 public class Card {
     public String Name;

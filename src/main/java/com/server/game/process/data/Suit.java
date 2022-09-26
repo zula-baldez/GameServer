@@ -1,4 +1,4 @@
-package com.server.game_process_util;
+package com.server.game.process.data;
 
 public enum Suit
 {

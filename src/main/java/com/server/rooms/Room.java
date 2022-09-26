@@ -1,9 +1,11 @@
 package com.server.rooms;
 
+import com.server.controllers.GameProcessController;
 import com.server.exception.NoSuchPlayerException;
-import com.server.game_process.GameManager;
-import com.server.game_process_util.Player;
+import com.server.game.process.GameManager;
+import com.server.game.process.util.Player;
 import com.server.util.ResponseCode;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ public class Room {
     private List<Player> players = new ArrayList<>();
     private int id;
     private GameManager gameManager = new GameManager(this);
+
+    private GameProcessController gameProcessController = new GameProcessController();
     public int getPlayersNumber() {
         return players.size();
     }

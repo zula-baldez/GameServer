@@ -2,8 +2,8 @@ package com.server.controllers;
 
 import com.server.database.PlayersHandler;
 import com.server.exception.NoSuchPlayerException;
-import com.server.game_process_util.Player;
-import com.server.game_process_util.RegisterAnswer;
+import com.server.game.process.util.Player;
+import com.server.game.process.data.RegisterAnswer;
 import com.server.rooms.RoomHandler;
 import com.server.rooms.RoomListConverter;
 import com.server.rooms.RoomInfo;
@@ -13,11 +13,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /*
@@ -28,10 +29,10 @@ import java.util.Set;
 @RestController
 @Configuration
 @ComponentScan
-public class ConnectionController {
+public class ConnectionControllerImpl implements ConnectionController {
     private final Set<Integer> registeredId = new HashSet<>();
     private final PlayersHandler playersHandler = new PlayersHandler();
-
+    private final ExecutorService threader = Executors.newCachedThreadPool();
     private static int ID = 0;
     @Autowired
     private RoomHandler roomHandler;
@@ -62,7 +63,13 @@ public class ConnectionController {
             try {
                 Player player = playersHandler.getPlayerById(id);
                 player.setHost(true);
-                roomHandler.getRoomById(roomId).addPlayer(playersHandler.getPlayerById(id));
+                threader.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        roomHandler.getRoomById(roomId).addPlayer(player);
+
+                    }
+                });
                 return ResponseEntity.status(200).body("Ok");
             } catch (NoSuchPlayerException e) {
                 return ResponseEntity.status(400).body("Check your id!");
