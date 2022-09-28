@@ -5,11 +5,12 @@ import com.server.rooms.RoomInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class RoomListConverter {
     private List<RoomInfo> roomsInfo = new ArrayList<>();
 
-    public RoomListConverter(List<Room> rooms) {
+    public RoomListConverter(Set<Room> rooms) {
         for (Room room : rooms) {
             RoomInfo roomInfo=  new RoomInfo(room.getMaxPlayers(), room.getAmountOfPlayers(), room.getName(), room.getId());
             roomsInfo.add(roomInfo);

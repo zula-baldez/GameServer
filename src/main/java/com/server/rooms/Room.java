@@ -5,7 +5,6 @@ import com.server.exception.NoSuchPlayerException;
 import com.server.game.process.GameManager;
 import com.server.game.process.util.Player;
 import com.server.util.ResponseCode;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,7 @@ public class Room {
     private int maxPlayers;
     private List<Player> players = new ArrayList<>();
     private int id;
-    private GameManager gameManager = new GameManager(this);
+    private final GameManager gameManager = new GameManager(this);
 
     private GameProcessController gameProcessController = new GameProcessController();
     public int getPlayersNumber() {
@@ -27,7 +26,9 @@ public class Room {
         this.name = name;
         this.id = id;
     }
-
+    public GameManager getGameManager() {
+        return gameManager;
+    }
     public int getAmountOfPlayers() {
         return players.size();
     }

@@ -2,11 +2,12 @@ package com.server.controllers;
 
 import com.server.database.PlayersHandler;
 import com.server.exception.NoSuchPlayerException;
-import com.server.game.process.util.Player;
 import com.server.game.process.data.RegisterAnswer;
+import com.server.game.process.util.Player;
+import com.server.rooms.Room;
 import com.server.rooms.RoomHandler;
-import com.server.rooms.RoomListConverter;
 import com.server.rooms.RoomInfo;
+import com.server.rooms.RoomListConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -31,12 +32,14 @@ import java.util.concurrent.Executors;
 @ComponentScan
 public class ConnectionControllerImpl implements ConnectionController {
     private final Set<Integer> registeredId = new HashSet<>();
-    private final PlayersHandler playersHandler = new PlayersHandler();
+    @Autowired
+    private PlayersHandler playersHandler;
     private final ExecutorService threader = Executors.newCachedThreadPool();
     private static int ID = 0;
     @Autowired
     private RoomHandler roomHandler;
-
+/*    @Autowired
+    DBController dbController;*/
     @ResponseBody
     @RequestMapping(value = "/connection/room_list", method = RequestMethod.GET)
     public List<RoomInfo> roomList() {
@@ -62,11 +65,11 @@ public class ConnectionControllerImpl implements ConnectionController {
             registeredId.add(id);
             try {
                 Player player = playersHandler.getPlayerById(id);
-                player.setHost(true);
                 threader.submit(new Runnable() {
                     @Override
                     public void run() {
-                        roomHandler.getRoomById(roomId).addPlayer(player);
+                        Room room = roomHandler.getRoomById(roomId);
+                        room.addPlayer(player);
 
                     }
                 });

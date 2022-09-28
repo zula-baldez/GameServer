@@ -14,8 +14,6 @@ public class Player {
     private boolean isEnemy = true;
     private int amountOfPenki = 2;
     private boolean hasCardFromDeck = false;
-    private boolean isHost = false;
-    private DeferredResult<Action> deferredResult;
     public Player(int id) {
         this.id = id;
     }
@@ -28,13 +26,6 @@ public class Player {
         return name;
     }
 
-    public DeferredResult<Action> getDeferredResult() {
-        return deferredResult;
-    }
-
-    public void setDeferredResult(DeferredResult<Action> deferredResult) {
-        this.deferredResult = deferredResult;
-    }
 
     public void setName(String name) {
         this.name = name;
@@ -89,11 +80,5 @@ public class Player {
         this.id = id;
     }
 
-    public boolean isHost() {
-        return isHost;
-    }
 
-    public void setHost(boolean host) {
-        isHost = host;
-    }
 }
