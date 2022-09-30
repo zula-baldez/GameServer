@@ -3,15 +3,13 @@ package com.server.game.process;
 import com.server.Validators.MoveValidator;
 import com.server.Validators.ValidationResponse;
 import com.server.controllers.GameProcessNotifierImpl;
-import com.server.game.process.data.Action;
-import com.server.game.process.data.ActionTypes;
-import com.server.game.process.data.FieldType;
+import com.server.game.process.data.*;
 import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
-import com.server.game.process.data.Stage;
 import com.server.game.process.Timer.TimerImpl;
 import com.server.rooms.Room;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,13 +24,15 @@ public class GameManager {
     private final Room room;
     private final MoveValidator moveValidator = new MoveValidator();
     private Game game;
-    private final Stage stage = Stage.Razdacha;
+    private Stage stage = Stage.RAZDACHA;
     private final TimerImpl timerImpl = new TimerImpl(this);
     private final Map<Player, List<Card>> playerHands = new HashMap();
+    private int iterTurnId = 0;
     private int playerIdTurn = 0;
-    private int iterPlayerTurnId = 0;
     private boolean hasPlayerDroppedHisCards = false;
     private boolean hasTakenCardFromDeck = false;
+    private List<Player> activePlayers = null;
+
     public GameManager(Room room) {
         this.room = room;
         game = new Game(room.getPlayers());
@@ -59,7 +59,7 @@ public class GameManager {
         GameProcessNotifierImpl.sendGameStartMessage(room, playersToHands, game.getField(), game.getDeck());
     }
 
-    public ValidationResponse validateCardMove(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
+    public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
         ValidationResponse val = null;
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
             val = new ValidationResponse(false, false);
@@ -77,12 +77,21 @@ public class GameManager {
                 val = new ValidationResponse(false, true);
             }
         } else if (playerFrom.getId() == -1) {
-            Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
-            if (mainPlayer.getId() == playerTo.getId())
-                val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.SELF_HAND, FieldType.FIELD);
-            else
-                val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.ENEMY_HAND, FieldType.FIELD);
+            if (game.getDeck().size() == 1) {
+                val = new ValidationResponse(true, true);
+            } else {
+                Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
+                if (mainPlayer.getId() == playerTo.getId())
+                    val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.SELF_HAND, FieldType.FIELD);
+                else
+                    val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.ENEMY_HAND, FieldType.FIELD);
+            }
             if (val.isTurnRight()) {
+                Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
+
+                if (postcard.suit != Suit.PICK) {
+                    game.setKozir(postcard.suit);
+                }
                 game.getField().remove(postcard);
                 playerTo.getPlayerHand().add(postcard);
                 hasTakenCardFromDeck = false;
@@ -91,7 +100,7 @@ public class GameManager {
         } else {
             Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
             if (mainPlayer.getId() == playerFrom.getId())
-                val = moveValidator.ValidateDistribution(room, mainPlayer,  playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), card, FieldType.ENEMY_HAND, FieldType.SELF_HAND);
+                val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), card, FieldType.ENEMY_HAND, FieldType.SELF_HAND);
             else val = new ValidationResponse(false, false);
 
             if (val.isTurnRight()) {
@@ -102,14 +111,71 @@ public class GameManager {
 
 
         System.out.println("Will change turn? " + val.isNeedToChangeTurn());
-        if (val.isNeedToChangeTurn()) timerImpl.changeTurn();
+
+
+        if (game.getDeck().size() == 0) {
+            stage = Stage.PLAY;
+            GameProcessNotifierImpl.startPlayStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
+        }
+
+        return val;
+
+    }
+
+
+    public ValidationResponse validateCardMovePlay(Room room, Player mainPlayer, Player playerFrom, Player playerTo, Card card) {
+        ValidationResponse val = null;
+        if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
+            val = new ValidationResponse(false, false);
+        } else if (playerFrom.getId() == playerTo.getId()) {
+            val = new ValidationResponse(true, false);
+        } else if (playerTo.getId() == -1) {
+            if (game.getField().size() != 0) {
+                val = moveValidator.ValidatePlayMove(room, mainPlayer, game.getField().get(game.getField().size() - 1), card, FieldType.FIELD, FieldType.SELF_HAND);
+                if (val.isTurnRight()) {
+                    playerFrom.getPlayerHand().remove(card);
+                    game.getField().add(card);
+                    if (playerFrom.getPlayerHand().size() == playerFrom.getAmountOfPenki()) {
+                        for (Card c : playerFrom.getPlayerHand()) {
+                            c.isPenek = false;
+                        }
+                    }
+                    if (game.getField().size() == game.getPlayers().size()) {
+                        game.getField().clear();
+                    }
+                }
+            } else {
+                val = new ValidationResponse(true, true);
+                playerFrom.getPlayerHand().remove(playerFrom.getPlayerHand().size() - 1);
+                game.getField().add(card);
+                if (playerFrom.getPlayerHand().size() == playerFrom.getAmountOfPenki()) {
+                    for (Card c : playerFrom.getPlayerHand()) {
+                        c.isPenek = false;
+                    }
+                }
+                if (game.getField().size() == game.getPlayers().size()) {
+                    game.getField().clear();
+                }
+            }
+        } else if (playerFrom.getId() == -1) {
+
+            val = new ValidationResponse(false, false);
+            mainPlayer.addFine();
+
+        } else {
+            val = new ValidationResponse(false, false);
+            mainPlayer.addFine();
+
+        }
+
+
         return val;
 
     }
 
     public Action getCard(int playerId) {
-        if(hasTakenCardFromDeck) {
-            return new Action(ActionTypes.BAD_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn);
+        if (hasTakenCardFromDeck) {
+            return new Action(ActionTypes.BAD_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn, game.getKozir());
 
         }
         if (game.getDeck().size() != 0 && playerId == playerIdTurn) {
@@ -117,7 +183,19 @@ public class GameManager {
             game.getDeck().remove(card);
             game.getField().add(card);
             hasTakenCardFromDeck = true;
-            return new Action(ActionTypes.OK_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn);
+            return new Action(ActionTypes.OK_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn, game.getKozir());
+        } else return null;
+    }
+
+
+    public Action getCardFromField(int playerId, Player player) {
+
+        if (game.getField().size() != 0 && playerId == playerIdTurn) {
+            Card card = game.getField().get(0);
+            game.getField().remove(card);
+            player.getPlayerHand().add(card);
+            changeTurnId();
+            return new Action(ActionTypes.OK_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn, game.getKozir());
         } else return null;
     }
 
@@ -150,18 +228,37 @@ public class GameManager {
         return playerHands;
     }
 
-    public void setPlayerTurn(int playerTurn) {
-        this.playerIdTurn = playerTurn;
-    }
+
 
     public void setGame(Game game) {
         this.game = game;
     }
 
     public void changeTurnId() {
-        playerIdTurn = game.getPlayers().get(iterPlayerTurnId).getId();
-        iterPlayerTurnId++;
-        if (iterPlayerTurnId >= game.getPlayers().size()) iterPlayerTurnId = 0;
+
+       /* if (activePlayers == null) {
+            activePlayers = new ArrayList<>();
+            activePlayers.addAll(p());
+        }
+        Player player = null;
+        while (activePlayers.size() != 0) {
+            if (activePlayers.get(0).getPlayerHand().size() == 0) {
+                activePlayers.remove(0);
+
+            } else {
+                player = activePlayers.get(0);
+                activePlayers.remove(0);
+                activePlayers.add(player);
+                break;
+            }
+        }
+
+        if (player == null) return;
+
+        playerIdTurn = player.getId();*/
+        playerIdTurn = game.getPlayers().get(iterTurnId).getId();
+        iterTurnId++;
+        if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;
     }
 }
 

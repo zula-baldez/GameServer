@@ -1,6 +1,7 @@
 package com.server.game.process.util;
 
 
+import com.server.exception.NoSuchCardException;
 import com.server.game.process.data.Action;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -18,7 +19,13 @@ public class Player {
         this.id = id;
     }
 
-
+    public Card getCardById(int id) throws NoSuchCardException {
+        for (Card card:
+             playerHand) {
+            if(card.id == id) return card;
+        }
+        throw new NoSuchCardException();
+    }
     public int getId() {
         return id;
     }

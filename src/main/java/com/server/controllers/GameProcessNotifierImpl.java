@@ -29,8 +29,14 @@ public class GameProcessNotifierImpl extends GameProcessController {
 
     public static void sendGameStartMessage(Room room, Map<Integer, List<Card>> playerHands, List<Card> field, List<Card> anotherCards) {
 
-        Action action = new Action(ActionTypes.START_GAME, playerHands, field, anotherCards, room.getGameManager().getPlayerTurn());
+        Action action = new Action(ActionTypes.START_GAME, playerHands, field, anotherCards, room.getGameManager().getPlayerTurn(),
+                room.getGameManager().getGame().getKozir());
         sendAction(action, room);
 
+    }
+    public static void startPlayStage(Room room, Map<Integer, List<Card>> playerHands, List<Card> field, List<Card> anotherCards) {
+        Action action = new Action(ActionTypes.START_PLAY, playerHands, field, anotherCards, room.getGameManager().getPlayerTurn(),
+                room.getGameManager().getGame().getKozir());
+        sendAction(action, room);
     }
 }
