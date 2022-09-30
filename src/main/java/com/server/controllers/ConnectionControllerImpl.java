@@ -65,6 +65,7 @@ public class ConnectionControllerImpl implements ConnectionController {
             registeredId.add(id);
             try {
                 Player player = playersHandler.getPlayerById(id);
+                System.out.println(player.getId());
                 threader.submit(new Runnable() {
                     @Override
                     public void run() {

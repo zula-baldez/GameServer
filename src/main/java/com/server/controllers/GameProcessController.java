@@ -4,6 +4,8 @@ import com.server.Validators.ValidationResponse;
 import com.server.database.PlayersHandler;
 import com.server.exception.NoSuchPlayerException;
 import com.server.game.process.data.Action;
+import com.server.game.process.data.ActionTypes;
+import com.server.game.process.data.GetCardData;
 import com.server.game.process.data.MovingCardData;
 import com.server.game.process.util.Player;
 import com.server.rooms.Room;
@@ -42,22 +44,61 @@ public class GameProcessController {
 
     @ResponseBody
     @RequestMapping(value = "/game/move_card", method = RequestMethod.POST)
-    public int validateMovingCard(@RequestParam MovingCardData movingCardData) {
+    public void validateMovingCard(@RequestBody MovingCardData movingCardData) {
 
         try {
-            Player mainPlayer = playersHandler.getPlayerById(movingCardData.playerId());
-            Player droppedPlayer;
-            if (movingCardData.dropPlayerId() == -1) {
-                droppedPlayer = new Player(-1);
+            Player mainPlayer;
+            if (movingCardData.mainPlayerId() == -1) {
+                mainPlayer = new Player(-1);
             } else {
-                droppedPlayer = playersHandler.getPlayerById(movingCardData.dropPlayerId());
+                mainPlayer = playersHandler.getPlayerById(movingCardData.mainPlayerId());
             }
-            Room room = roomHandler.getRoomByPlayer(mainPlayer);
-             ValidationResponse valRes = room.getGameManager().validateCardMove(room, movingCardData.card(), mainPlayer, droppedPlayer);
-            return  1;
+
+            Player playerTo;
+            if (movingCardData.playerTo() == -1) {
+                playerTo = new Player(-1);
+            } else {
+                playerTo = playersHandler.getPlayerById(movingCardData.playerTo());
+            }
+
+
+
+            Player playerFrom;
+            if (movingCardData.playerFrom() == -1) {
+                playerFrom = new Player(-1);
+            } else {
+                playerFrom = playersHandler.getPlayerById(movingCardData.playerFrom());
+            }
+
+
+
+            Room room = roomHandler.getRoomById(movingCardData.roomId());
+            ValidationResponse valRes = room.getGameManager().validateCardMove(room, mainPlayer, playerFrom, playerTo);
+            System.out.println(valRes);
+
+            Action act =  createAction(valRes, room);
+
+
+            for (var def: deferredResults.get(room)
+            ) {
+                def.setResult(act);
+
+            }
         } catch (NoSuchPlayerException e) {
             e.printStackTrace();
-            return -1;
+        }
+
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/game/get_card", method = RequestMethod.POST)
+    public void get_card_req(@RequestBody GetCardData getCardData) {
+
+        Room room = roomHandler.getRoomById(getCardData.roomId());
+        Action act =  room.getGameManager().getCard(getCardData.playerId());
+        for (var def: deferredResults.get(room)
+             ) {
+            def.setResult(act);
         }
     }
 
@@ -88,5 +129,30 @@ public class GameProcessController {
 
     }
 
+    private Action createAction(ValidationResponse validationResponse, Room room) {
+        Action action = null;
+        if (validationResponse.isNeedToChangeTurn() && validationResponse.isTurnRight()) {
+            action = new Action(ActionTypes.OK_MOVE, room.getGameManager().getGame().getPlayersHands(),
+                    room.getGameManager().getGame().getField(),
+                    room.getGameManager().getGame().getDeck(),
+                    room.getGameManager().getPlayerTurn()
+            );
 
+        }
+        if (!validationResponse.isNeedToChangeTurn() && validationResponse.isTurnRight()) {
+            action = new Action(ActionTypes.OK_MOVE, room.getGameManager().getGame().getPlayersHands(),
+                    room.getGameManager().getGame().getField(),
+                    room.getGameManager().getGame().getDeck(),
+                    room.getGameManager().getPlayerTurn()
+            );
+        }
+        if (!validationResponse.isTurnRight()) {
+            action = new Action(ActionTypes.BAD_MOVE, room.getGameManager().getGame().getPlayersHands(),
+                    room.getGameManager().getGame().getField(),
+                    room.getGameManager().getGame().getDeck(),
+                    room.getGameManager().getPlayerTurn()
+            );
+        }
+        return action;
+    }
 }

@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class TimerImpl implements Timer {
-    private final ExecutorService timerHandler = Executors.newSingleThreadExecutor();
+    private ExecutorService timerHandler = Executors.newSingleThreadExecutor();
     private GameManager gameManager;
     private static final int turnTime = 30;
     private int timer = turnTime;
@@ -32,9 +32,11 @@ public class TimerImpl implements Timer {
     }
 
     public void changeTurn() {
-        gameManager.changeTurn();
+        gameManager.changeTurnId();
         timerHandler.shutdownNow();
+        timerHandler = Executors.newSingleThreadExecutor();
         timer = turnTime;
+        gameManager.setHasPlayerDroppedHisCards(false);
         startCountTurns();
     }
 }

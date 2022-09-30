@@ -63,6 +63,7 @@ public class Game {
 
             deck.remove(0);
             playersHands.put(player.getId(), cards);
+            player.setPlayerHand(cards);
         }
         return playersHands;
     }

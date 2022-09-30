@@ -8,5 +8,5 @@ import java.util.List;
 import java.util.Map;
 
 public record Action(ActionTypes actionTypes, Map<Integer, List<Card>> playersHand,
-                     List<Card> field, List<Card> anotherCards) {}
+                     List<Card> field, List<Card> anotherCards, int playerIdTurn) {}
 
