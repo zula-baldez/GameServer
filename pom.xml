@@ -45,45 +45,18 @@
             <artifactId>postgresql</artifactId>
             <version>42.5.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework/spring-websocket -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-websocket</artifactId>
-            <version>5.3.23</version>
-        </dependency>
 
-        <!-- https://mvnrepository.com/artifact/javax.websocket/javax.websocket-api -->
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>1.1</version>
-            <scope>provided</scope>
-        </dependency>
 
-        <dependency>
-            <groupId>com.badlogicgames.gdx</groupId>
-            <artifactId>gdx</artifactId>
-            <version>1.11.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>com.badlogicgames.gdx</groupId>
-            <artifactId>gdx-backend-headless</artifactId>
-            <version>1.11.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>com.badlogicgames.gdx</groupId>
-            <artifactId>gdx-platform</artifactId>
-            <classifier>natives-desktop</classifier>
-            <version>1.11.0</version>
-        </dependency>
+
+
 
     </dependencies>
 
     <build>
         <plugins>
- 
+
             <plugin>
                 <!-- Build an executable JAR -->
                 <groupId>org.apache.maven.plugins</groupId>
@@ -92,6 +65,8 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <addClasspath>true</addClasspath>
+
                             <mainClass>com.server.GameServerApplication</mainClass>
                         </manifest>
                     </archive>
