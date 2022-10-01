@@ -176,6 +176,7 @@ public class GameManager {
     public Action getCard(int playerId) {
 
         if (game.getDeck().size() != 0 && playerId == playerIdTurn) {
+            System.out.println("and player id is Correct!!!!!!");
             Card card = game.getDeck().get(game.getDeck().size() - 1);
             game.getDeck().remove(card);
             game.getField().add(card);

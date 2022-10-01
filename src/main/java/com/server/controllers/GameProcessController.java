@@ -145,7 +145,9 @@ public class GameProcessController {
     public void getCardReq(@RequestBody GetCardData getCardData) {
 
         Room room = roomHandler.getRoomById(getCardData.roomId());
+        System.out.println(room.getId());
         if(room.getGameManager().getGame().getDeck().size() == 0) return;
+        System.out.println("room deck is not null!!!");
         Action act =  room.getGameManager().getCard(getCardData.playerId());
         for (var def: deferredResults.get(room)) {
             def.setResult(act);
