@@ -174,10 +174,7 @@ public class GameManager {
     }
 
     public Action getCard(int playerId) {
-        if (hasTakenCardFromDeck) {
-            return new Action(ActionTypes.BAD_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn, game.getKozir());
 
-        }
         if (game.getDeck().size() != 0 && playerId == playerIdTurn) {
             Card card = game.getDeck().get(game.getDeck().size() - 1);
             game.getDeck().remove(card);
@@ -236,7 +233,7 @@ public class GameManager {
 
     public void changeTurnId() {
 
-        if (activePlayers == null) {
+ /*       if (activePlayers == null) {
             activePlayers = new ArrayList<>();
             activePlayers.addAll(game.getPlayers());
         }
@@ -257,11 +254,11 @@ public class GameManager {
         if (player == null) return;
 
         playerIdTurn = player.getId();
-        System.out.println(player.getId());
+        System.out.println(player.getId());*/
 
 
-        /*playerIdTurn = game.getPlayers().get(iterTurnId).getId();
+        playerIdTurn = game.getPlayers().get(iterTurnId).getId();
         iterTurnId++;
-        if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;*/
+        if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;
     }
 }
