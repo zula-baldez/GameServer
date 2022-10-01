@@ -54,8 +54,8 @@ public class GameManager {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        timerImpl.changeTurn();
         HashMap<Integer, List<Card>> playersToHands = (HashMap<Integer, List<Card>>) game.giveCards();
+        timerImpl.changeTurn();
         GameProcessNotifierImpl.sendGameStartMessage(room, playersToHands, game.getField(), game.getDeck());
     }
 
@@ -248,10 +248,12 @@ public class GameManager {
             } else {
                 player = activePlayers.get(0);
                 activePlayers.remove(0);
+                System.out.println(player.getId());
                 activePlayers.add(player);
                 break;
             }
         }
+        System.out.println("pf!");
         if (player == null) return;
 
         playerIdTurn = player.getId();
