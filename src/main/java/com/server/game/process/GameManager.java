@@ -252,10 +252,10 @@ public class GameManager {
                 break;
             }
         }
-
         if (player == null) return;
 
         playerIdTurn = player.getId();
+        System.out.println(player.getId());
        /* playerIdTurn = game.getPlayers().get(iterTurnId).getId();
         iterTurnId++;
         if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;*/
