@@ -40,6 +40,7 @@ public class GameProcessNotifierImpl extends GameProcessController {
         sendAction(action, room);
     }
     public static void showCardsBeforeDrop(Room room, Map<Integer, List<Card>> playerHands, List<Card> field, List<Card> anotherCards) {
+        System.out.println("Sending lagg!");
         Action action = new Action(ActionTypes.OK_MOVE, playerHands, field, anotherCards, -1,
                 room.getGameManager().getGame().getKozir());
         sendAction(action, room);
@@ -48,5 +49,7 @@ public class GameProcessNotifierImpl extends GameProcessController {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("Ended!!");
+
     }
 }
