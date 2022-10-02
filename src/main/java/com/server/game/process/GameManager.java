@@ -28,7 +28,7 @@ public class GameManager {
     private Stage stage = Stage.RAZDACHA;
     private final TimerImpl timerImpl = new TimerImpl(this);
     private final Map<Player, List<Card>> playerHands = new HashMap();
-    private int iterTurnId = 0;
+    private final int iterTurnId = 0;
     private int playerIdTurn = 0;
     private boolean hasPlayerDroppedHisCards = false;
     private boolean hasTakenCardFromDeck = false;
@@ -149,6 +149,9 @@ public class GameManager {
                     if (game.getField().size() == game.getPlayers().size()) {
                         game.getField().clear();
                         val = new ValidationResponse(true, false);
+                        if (checkIfPlayerWon()) {
+                            changeTurnId();
+                        }
                     }
                 }
             } else {
@@ -271,5 +274,13 @@ public class GameManager {
     /*    playerIdTurn = game.getPlayers().get(iterTurnId).getId();
         iterTurnId++;
         if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;*/
+    }
+
+    private boolean checkIfPlayerWon() {
+        try {
+            return activePlayers.get(0).getPlayerHand().size() == 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
