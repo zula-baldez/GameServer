@@ -13,19 +13,19 @@ public class CardManager {
     public static List<Card> getShuffledDeck() {
         List<Card> deck = new ArrayList<>();
 
-        for(int i = 2; i <= CARD_NUMBER; i++) {
+        for(int i = 6; i <= CARD_NUMBER; i++) {
             Card card = new Card(i*10+1, i, Suit.KRESTI);
             deck.add(card);
         }
-        for(int i = 2; i <= CARD_NUMBER; i++) {
+        for(int i = 6; i <= CARD_NUMBER; i++) {
             Card card = new Card(i*10+2, i, Suit.BYBI);
             deck.add(card);
         }
-        for(int i = 2; i <=CARD_NUMBER; i++) {
+        for(int i = 6; i <=CARD_NUMBER; i++) {
             Card card = new Card(i*10+3, i, Suit.CHERVI);
             deck.add(card);
         }
-        for(int i = 2; i <=CARD_NUMBER; i++) {
+        for(int i = 6; i <=CARD_NUMBER; i++) {
             Card card = new Card(i*10+4, i, Suit.PICK);
             deck.add(card);
         }
