@@ -149,6 +149,7 @@ public class GameManager {
                     if (game.getField().size() == game.getPlayers().size()) {
                         game.getField().clear();
                         val = new ValidationResponse(true, false);
+                        GameProcessNotifierImpl.showCardsBeforeDrop(room, game.getPlayersHands(), game.getField(), game.getDeck());
                         if (checkIfPlayerWon()) {
                             changeTurnId();
                         }

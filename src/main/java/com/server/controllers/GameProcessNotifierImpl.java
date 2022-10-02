@@ -39,4 +39,14 @@ public class GameProcessNotifierImpl extends GameProcessController {
                 room.getGameManager().getGame().getKozir());
         sendAction(action, room);
     }
+    public static void showCardsBeforeDrop(Room room, Map<Integer, List<Card>> playerHands, List<Card> field, List<Card> anotherCards) {
+        Action action = new Action(ActionTypes.OK_MOVE, playerHands, field, anotherCards, -1,
+                room.getGameManager().getGame().getKozir());
+        sendAction(action, room);
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }
