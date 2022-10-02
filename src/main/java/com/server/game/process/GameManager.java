@@ -168,6 +168,11 @@ public class GameManager {
                 }
                 if (game.getField().size() == game.getPlayers().size()) {
                     game.getField().clear();
+                    System.out.println("Cleared field");
+                    GameProcessNotifierImpl.showCardsBeforeDrop(room, game.getPlayersHands(), game.getField(), game.getDeck());
+                    if (checkIfPlayerWon()) {
+                        changeTurnId();
+                    }
                 }
             }
         } else if (playerFrom.getId() == -1) {
