@@ -234,7 +234,7 @@ public class GameManager {
 
     public void changeTurnId() {
 
- /*       if (activePlayers == null) {
+        if (activePlayers == null) {
             activePlayers = new ArrayList<>();
             activePlayers.addAll(game.getPlayers());
         }
@@ -255,11 +255,11 @@ public class GameManager {
         if (player == null) return;
 
         playerIdTurn = player.getId();
-        System.out.println(player.getId());*/
+        System.out.println(player.getId());
 
 
-        playerIdTurn = game.getPlayers().get(iterTurnId).getId();
+    /*    playerIdTurn = game.getPlayers().get(iterTurnId).getId();
         iterTurnId++;
-        if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;
+        if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;*/
     }
 }

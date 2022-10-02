@@ -77,7 +77,6 @@ public class ConnectionControllerImpl implements ConnectionController {
             } catch (NoSuchPlayerException e) {
                 return ResponseEntity.status(400).body("Check your id!");
             }
-
         } else return ResponseEntity.status(400).body("Wrong query");
     }
 
