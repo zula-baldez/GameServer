@@ -61,7 +61,7 @@ public class MoveValidator {
         //check for dropping card from hand to another player
         if (
                 fieldTypeBefore == FieldType.SELF_HAND &&
-                        fieldTypeAfter == FieldType.ENEMY_HAND && (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 2))) {
+                        fieldTypeAfter == FieldType.ENEMY_HAND && (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6))) {
             return new ValidationResponse(true, false);
         }
 
@@ -81,7 +81,7 @@ public class MoveValidator {
                 if (postCard.isPenek || previousCard == null || previousCard.isPenek || player.getPlayerHand().size() == player.getAmountOfPenki() + 1) continue;
 
 
-                if (postCard.attack - previousCard.attack == 1 || (previousCard.attack == 14 && postCard.attack == 2)) {
+                if (postCard.attack - previousCard.attack == 1 || (previousCard.attack == 14 && postCard.attack == 6)) {
                     player.addFine();
                     return new ValidationResponse(false, false);
                 }
@@ -99,7 +99,7 @@ public class MoveValidator {
 
         System.out.println("test2 passed!");
         //check if moving card from field is correct
-        if ((postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 2)) &&
+        if ((postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6)) &&
                 fieldTypeAfter == FieldType.ENEMY_HAND && fieldTypeBefore == FieldType.FIELD)
             return new ValidationResponse(true, false);
         if ((fieldTypeAfter == FieldType.ENEMY_HAND)) {
@@ -118,14 +118,14 @@ public class MoveValidator {
             prCard = enemy.getPlayerHand().get(enemy.getPlayerHand().size() - 1);
             if (prCard == null || prCard.isPenek) continue;
 
-            if (postcard.attack - prCard.attack == 1 || (prCard.attack == 14 && postcard.attack == 2)) {
+            if (postcard.attack - prCard.attack == 1 || (prCard.attack == 14 && postcard.attack == 6)) {
                 player.addFine();
                 return new ValidationResponse(false, false);
             }
         }
 
         System.out.println("test4 passed!");
-        if (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 2)) {
+        if (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6)) {
             return new ValidationResponse(true, false);
         }
 
