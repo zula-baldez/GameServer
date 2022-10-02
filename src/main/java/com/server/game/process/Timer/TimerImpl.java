@@ -5,7 +5,7 @@ import com.server.game.process.GameManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TimerImpl implements Timer {
+public class TimerImpl {
     private ExecutorService timerHandler = Executors.newSingleThreadExecutor();
     private GameManager gameManager;
     private static final int turnTime = 30;
@@ -14,29 +14,11 @@ public class TimerImpl implements Timer {
         this.gameManager = gameManager;
     }
 
-    public void startCountTurns() {
-        timerHandler.submit(new Runnable() {
-            @Override
-            public void run() {
-                while (timer > 0) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        return;
-                    }
-                    timer--;
-                }
-                changeTurn();
-            }
-        });
-    }
+    //todo ограничение хода, мб и не to do
+    
 
     public void changeTurn() {
         gameManager.changeTurnId();
-        timerHandler.shutdownNow();
-        timerHandler = Executors.newSingleThreadExecutor();
-        timer = turnTime;
-        gameManager.setHasPlayerDroppedHisCards(false);
-        startCountTurns();
+
     }
 }
