@@ -4,6 +4,7 @@ import com.server.Validators.ValidationResponse;
 import com.server.database.PlayersHandler;
 import com.server.exception.NoSuchCardException;
 import com.server.exception.NoSuchPlayerException;
+import com.server.exception.StartGameException;
 import com.server.game.process.data.*;
 import com.server.game.process.util.Player;
 import com.server.rooms.Room;
@@ -84,6 +85,8 @@ public class GameProcessController {
             }
         } catch (NoSuchPlayerException e) {
             e.printStackTrace();
+        } catch (StartGameException e) {
+            return;
         }
 
     }

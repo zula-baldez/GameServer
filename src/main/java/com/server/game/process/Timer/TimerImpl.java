@@ -15,7 +15,7 @@ public class TimerImpl {
     }
 
     //todo ограничение хода, мб и не to do
-    
+
 
     public void changeTurn() {
         gameManager.changeTurnId();

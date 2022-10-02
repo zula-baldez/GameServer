@@ -3,6 +3,7 @@ package com.server.game.process;
 import com.server.Validators.MoveValidator;
 import com.server.Validators.ValidationResponse;
 import com.server.controllers.GameProcessNotifierImpl;
+import com.server.exception.StartGameException;
 import com.server.game.process.data.*;
 import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
@@ -59,7 +60,7 @@ public class GameManager {
         GameProcessNotifierImpl.sendGameStartMessage(room, playersToHands, game.getField(), game.getDeck());
     }
 
-    public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
+    public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) throws StartGameException {
         System.out.println("validate move! id - " + playerIdTurn);
         ValidationResponse val = null;
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
@@ -79,7 +80,9 @@ public class GameManager {
             }
         } else if (playerFrom.getId() == -1) {
             if (game.getDeck().size() == 1) {
-                val = new ValidationResponse(true, true);
+                if (playerTo.getId() == mainPlayer.getId())
+                    val = new ValidationResponse(true, true);
+                else val = new ValidationResponse(false, false);
             } else {
                 Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
                 if (mainPlayer.getId() == playerTo.getId())
@@ -116,10 +119,12 @@ public class GameManager {
 
         if (game.getDeck().size() == 0) {
             stage = Stage.PLAY;
+            room.getGameManager().changeTurnId();
             GameProcessNotifierImpl.startPlayStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
-        }
+            throw new StartGameException();
+        } else
 
-        return val;
+            return val;
 
     }
 
@@ -175,7 +180,7 @@ public class GameManager {
     }
 
     public Action getCard(int playerId) {
-        if(hasTakenCardFromDeck) {
+        if (hasTakenCardFromDeck) {
             return new Action(ActionTypes.BAD_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn, game.getKozir());
         } else {
             hasTakenCardFromDeck = true;
@@ -230,7 +235,6 @@ public class GameManager {
     public Map<Player, List<Card>> getPlayerHands() {
         return playerHands;
     }
-
 
 
     public void setGame(Game game) {
