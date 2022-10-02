@@ -153,7 +153,7 @@ public class GameManager {
                 }
             } else {
                 val = new ValidationResponse(true, true);
-                playerFrom.getPlayerHand().remove(playerFrom.getPlayerHand().size() - 1);
+                playerFrom.getPlayerHand().remove(card);
                 game.getField().add(card);
                 if (playerFrom.getPlayerHand().size() == playerFrom.getAmountOfPenki()) {
                     for (Card c : playerFrom.getPlayerHand()) {
