@@ -60,6 +60,7 @@ public class GameManager {
     }
 
     public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
+        System.out.println("validate move! id - " + playerIdTurn);
         ValidationResponse val = null;
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
             val = new ValidationResponse(false, false);
@@ -174,7 +175,11 @@ public class GameManager {
     }
 
     public Action getCard(int playerId) {
-
+        if(hasTakenCardFromDeck) {
+            return new Action(ActionTypes.BAD_MOVE, game.getPlayersHands(), game.getField(), game.getDeck(), playerIdTurn, game.getKozir());
+        } else {
+            hasTakenCardFromDeck = true;
+        }
         if (game.getDeck().size() != 0 && playerId == playerIdTurn) {
             System.out.println("and player id is Correct!!!!!!");
             Card card = game.getDeck().get(game.getDeck().size() - 1);
@@ -233,7 +238,7 @@ public class GameManager {
     }
 
     public void changeTurnId() {
-
+        hasTakenCardFromDeck = false;
         if (activePlayers == null) {
             activePlayers = new ArrayList<>();
             activePlayers.addAll(game.getPlayers());
