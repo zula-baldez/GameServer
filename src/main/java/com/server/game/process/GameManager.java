@@ -65,8 +65,12 @@ public class GameManager {
         ValidationResponse val = null;
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
             val = new ValidationResponse(false, false);
+            System.out.println("Vet1!");
         } else if (playerFrom.getId() == playerTo.getId()) {
             val = new ValidationResponse(true, false);
+            System.out.println("Vet2!");
+
+
         } else if (playerTo.getId() == -1) {
             Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
             if (game.getField().size() != 0) {
@@ -75,20 +79,34 @@ public class GameManager {
                     playerFrom.getPlayerHand().remove(playerFrom.getPlayerHand().size() - 1);
                     game.getField().add(card);
                 }
+                System.out.println("Vet3!");
+
             } else {
+                System.out.println("Vet4!");
+
                 val = new ValidationResponse(false, true);
             }
         } else if (playerFrom.getId() == -1) {
             if (game.getDeck().size() == 1) {
-                if (playerTo.getId() == mainPlayer.getId())
+                if (playerTo.getId() == mainPlayer.getId()) {
+                    System.out.println("Vet5!");
+
                     val = new ValidationResponse(true, true);
-                else val = new ValidationResponse(false, false);
+                } else {
+                    val = new ValidationResponse(false, false);
+                    System.out.println("Vet6!");
+                }
             } else {
                 Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
-                if (mainPlayer.getId() == playerTo.getId())
+                if (mainPlayer.getId() == playerTo.getId()) {
                     val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.SELF_HAND, FieldType.FIELD);
-                else
+                    System.out.println("Vet7!");
+
+                } else {
                     val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.ENEMY_HAND, FieldType.FIELD);
+                    System.out.println("Vet8!");
+
+                }
             }
             if (val.isTurnRight()) {
                 Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
@@ -103,10 +121,15 @@ public class GameManager {
 
         } else {
             Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
-            if (mainPlayer.getId() == playerFrom.getId())
+            if (mainPlayer.getId() == playerFrom.getId()) {
                 val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), card, FieldType.ENEMY_HAND, FieldType.SELF_HAND);
-            else val = new ValidationResponse(false, false);
+                System.out.println("Vet9!");
 
+            }
+            else {val = new ValidationResponse(false, false);
+                System.out.println("Vet10!");
+
+            }
             if (val.isTurnRight()) {
                 playerFrom.getPlayerHand().remove(card);
                 playerTo.getPlayerHand().add(card);
