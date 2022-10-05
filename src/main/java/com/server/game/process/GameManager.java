@@ -169,7 +169,7 @@ public class GameManager {
                             c.isPenek = false;
                         }
                     }
-                    if (game.getField().size() == game.getPlayers().size()) {
+                    if (game.getField().size() == activePlayers.size()) {
                         game.getField().clear();
                         val = new ValidationResponse(true, false);
 
