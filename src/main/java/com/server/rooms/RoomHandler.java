@@ -17,7 +17,7 @@ public class RoomHandler {
     private int id = 0;
     private Set<Room> rooms = new HashSet<>();
     public void createRoom(int maxPlayers, String name) throws EnterRoomException {
-        if(maxPlayers <= 0 || name == null || rooms.size() > 10) throw new EnterRoomException();
+        if(maxPlayers <= 0 || name == null) throw new EnterRoomException();
         Room room = new Room(0, maxPlayers, name, id);
         id++;
         rooms.add(room);
