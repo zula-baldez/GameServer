@@ -73,6 +73,7 @@ public class GameProcessController {
 
             Room room = roomHandler.getRoomById(movingCardData.roomId());
             if(room.getGameManager().getStage() == Stage.PLAY) return;
+            System.out.println("playerFrom: " + playerFrom.getId() + " playerTo: " + playerTo.getId());
             ValidationResponse valRes = room.getGameManager().validateCardMoveRazd(room, mainPlayer, playerFrom, playerTo);
 
             Action act =  createAction(valRes, room);
