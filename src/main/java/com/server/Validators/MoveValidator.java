@@ -10,16 +10,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class MoveValidator {
 
-    /*
-        public boolean ValidateMove(Player player, Card preCard, Card postcard, Suit kozir) {
-            if (preCard.Attack < postcard.Attack && preCard.suit == postcard.suit) return true;
 
-            if (preCard.Attack < postcard.Attack && postcard.suit == kozir && !preCard.isPenek) return true;
+    public ValidationResponse ValidatePlayMove(Room room, Player player, Card preCard, Card postcard) {
+        ValidationResponse val = null;
+        val = validatePrecardPick(room, player, preCard, postcard);
+        if(val != null) return val;
 
-            player.addFine();
-            return false;
-        }*/
-    public ValidationResponse ValidatePlayMove(Room room, Player player, Card preCard, Card postcard, FieldType fieldTypeAfter, FieldType fieldTypeBefore) {
+        val = validateIfPrecardIsKozir(room, player, preCard, postcard);
+        if(val != null) return val;
+
+        val = validateIfPrecardIsNotKozirOrPick(room, player, preCard, postcard);
+        return val;
+
+    }
+
+
+
+    private ValidationResponse validatePrecardPick(Room room, Player player, Card preCard, Card postcard) {
         if (preCard.suit == Suit.PICK) {
             if (postcard.suit == Suit.PICK && postcard.attack > preCard.attack) {
                 return new ValidationResponse(true, true);
@@ -27,7 +34,12 @@ public class MoveValidator {
                 player.addFine();
                 return new ValidationResponse(false, false);
             }
-        } else if (preCard.suit == room.getGameManager().getGame().getKozir()) {
+        }
+        return null;
+    }
+
+    private ValidationResponse validateIfPrecardIsKozir(Room room, Player player, Card preCard, Card postcard) {
+        if (preCard.suit == room.getGameManager().getGame().getKozir()) {
             if (postcard.suit == room.getGameManager().getGame().getKozir() && postcard.attack > preCard.attack) {
                 return new ValidationResponse(true, true);
             } else {
@@ -35,38 +47,81 @@ public class MoveValidator {
                 player.addFine();
                 return new ValidationResponse(false, false);
             }
-        } else {
-            if (postcard.suit == preCard.suit && postcard.attack > preCard.attack || postcard.suit == room.getGameManager().getGame().getKozir()) {
-                return new ValidationResponse(true, true);
-
-            } else {
-
-                player.addFine();
-                return new ValidationResponse(false, false);
-            }
         }
-
+        return null;
     }
+
+    private ValidationResponse validateIfPrecardIsNotKozirOrPick(Room room, Player player, Card preCard, Card postcard) {
+        if (postcard.suit == preCard.suit && postcard.attack > preCard.attack || postcard.suit == room.getGameManager().getGame().getKozir()) {
+            return new ValidationResponse(true, true);
+
+        } else {
+
+            player.addFine();
+            return new ValidationResponse(false, false);
+        }
+    }
+
+
+
+
+
+
+
+
 
 
     public ValidationResponse ValidateDistribution(Room room, Player player, Card preCard, Card postcard, FieldType
             fieldTypeAfter, FieldType fieldTypeBefore) {
-        System.out.println(fieldTypeAfter);
-        System.out.println(fieldTypeBefore);
-        System.out.println(preCard.attack);
-        System.out.println(postcard.attack);
+        ValidationResponse val = null;
+
+        val = checkIfFieldBeforeEnemy(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+
+        val = checkIfDroppingToAnotherPlayerCorrect(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+
+        val = checkIfPlayerCouldPutCardToAnotherPlayer(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+
+        val = checkIfPlayerGettingCardFromField(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+        val = checkIfMovingCardFromFieldToEnemyIsCorrect(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+        val = checkIfPLayerCouldPutCardToEnemy(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+        val = checkIfPuttingCardToSelfDontChangeTurn(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
+        if (val != null) return val;
+
+        //player put card to himself and there was no reason to put card to another player
+        return new ValidationResponse(true, true);
+    }
+
+    private ValidationResponse checkIfFieldBeforeEnemy(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
         if (fieldTypeBefore == FieldType.ENEMY_HAND) {
             return new ValidationResponse(false, false);
         }
-        //check for dropping card from hand to another player
-        if (
-                fieldTypeBefore == FieldType.SELF_HAND &&
-                        fieldTypeAfter == FieldType.ENEMY_HAND && (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6))) {
+        return null;
+    }
+
+    private ValidationResponse checkIfDroppingToAnotherPlayerCorrect(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
+        if (fieldTypeBefore == FieldType.SELF_HAND &&
+                fieldTypeAfter == FieldType.ENEMY_HAND && (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6))) {
             return new ValidationResponse(true, false);
         }
+        return null;
+    }
 
-        System.out.println("test0 passed!");
-        //check if player could drop his cards
+    private ValidationResponse checkIfPlayerCouldPutCardToAnotherPlayer(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
         if (player.getPlayerHand().size() != 0) {
             for (Player enemy : room.getGameManager().getGame().getPlayers()) {
                 if (enemy.equals(player)) {
@@ -78,7 +133,8 @@ public class MoveValidator {
                     previousCard = enemy.getPlayerHand().get(enemy.getPlayerHand().size() - 1);
                 else
                     previousCard = null;
-                if (postCard.isPenek || previousCard == null || previousCard.isPenek || player.getPlayerHand().size() == player.getAmountOfPenki() + 1) continue;
+                if (postCard.isPenek || previousCard == null || previousCard.isPenek || player.getPlayerHand().size() == player.getAmountOfPenki() + 1)
+                    continue;
 
 
                 if (postCard.attack - previousCard.attack == 1 || (previousCard.attack == 14 && postCard.attack == 6)) {
@@ -87,18 +143,21 @@ public class MoveValidator {
                 }
             }
         }
+        return null;
+    }
 
-        System.out.println("test1 passed!");
-
+    private ValidationResponse checkIfPlayerGettingCardFromField(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
         if (fieldTypeBefore == FieldType.SELF_HAND) {
 
             player.addFine();
             return new ValidationResponse(false, false);
         }
+        return null;
+    }
 
-
-        System.out.println("test2 passed!");
-        //check if moving card from field is correct
+    private ValidationResponse checkIfMovingCardFromFieldToEnemyIsCorrect(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
         if ((postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6)) &&
                 fieldTypeAfter == FieldType.ENEMY_HAND && fieldTypeBefore == FieldType.FIELD)
             return new ValidationResponse(true, false);
@@ -107,8 +166,10 @@ public class MoveValidator {
             return new ValidationResponse(false, false);
         }
 
-        System.out.println("test3 passed!");
-
+        return null;
+    }
+    private ValidationResponse checkIfPLayerCouldPutCardToEnemy(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
         for (Player enemy : room.getGameManager().getGame().getPlayers()) {
             if (enemy.getId() == player.getId()) {
                 continue;
@@ -123,16 +184,15 @@ public class MoveValidator {
                 return new ValidationResponse(false, false);
             }
         }
+        return null;
+    }
 
-        System.out.println("test4 passed!");
+    private ValidationResponse checkIfPuttingCardToSelfDontChangeTurn(Room room, Player player, Card preCard, Card postcard, FieldType
+            fieldTypeAfter, FieldType fieldTypeBefore) {
         if (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6)) {
             return new ValidationResponse(true, false);
         }
 
-
-        System.out.println("test5 passed!");
-        return new ValidationResponse(true, true);
+        return null;
     }
-
-
 }

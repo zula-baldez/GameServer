@@ -1,10 +1,8 @@
 package com.server.rooms;
 
-import com.server.controllers.GameProcessController;
 import com.server.exception.NoSuchPlayerException;
 import com.server.game.process.GameManager;
 import com.server.game.process.util.Player;
-import com.server.util.ResponseCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +14,7 @@ public class Room {
     private int id;
     private final GameManager gameManager = new GameManager(this);
 
-    private GameProcessController gameProcessController = new GameProcessController();
-    public int getPlayersNumber() {
-        return players.size();
-    }
-    public Room(int amountOfPlayers, int maxPlayers, String name, int id) {
-        this.name = name;
+    public Room(int maxPlayers, String name, int id) {
         this.maxPlayers = maxPlayers;
         this.name = name;
         this.id = id;
@@ -37,19 +30,13 @@ public class Room {
         return maxPlayers;
     }
 
-    public void setMaxPlayers(int maxPlayers) {
-        this.maxPlayers = maxPlayers;
-    }
-
-    public ResponseCode addPlayer(Player player) {
+    public void addPlayer(Player player) {
         if (getMaxPlayers() == getAmountOfPlayers()) {
-            return ResponseCode.ERROR;
         } else {
             players.add(player);
             if(getMaxPlayers() == getAmountOfPlayers()) {
                 gameManager.startGame();
             }
-            return ResponseCode.OK;
         }
 
 
@@ -64,10 +51,6 @@ public class Room {
     }
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public List<Player> getPlayers() {

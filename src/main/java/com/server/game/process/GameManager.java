@@ -13,7 +13,6 @@ import com.server.rooms.Room;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /*
  play handler for one room
@@ -26,25 +25,13 @@ public class GameManager {
     private final MoveValidator moveValidator = new MoveValidator();
     private Game game;
     private Stage stage = Stage.RAZDACHA;
-    private final TimerImpl timerImpl = new TimerImpl(this);
-    private final Map<Player, List<Card>> playerHands = new HashMap();
-    private final int iterTurnId = 0;
     private int playerIdTurn = 0;
-    private boolean hasPlayerDroppedHisCards = false;
     private boolean hasTakenCardFromDeck = false;
     private List<Player> activePlayers = null;
 
     public GameManager(Room room) {
         this.room = room;
         game = new Game(room.getPlayers());
-    }
-
-    public boolean isHasPlayerDroppedHisCards() {
-        return hasPlayerDroppedHisCards;
-    }
-
-    public void setHasPlayerDroppedHisCards(boolean hasPlayerDroppedHisCards) {
-        this.hasPlayerDroppedHisCards = hasPlayerDroppedHisCards;
     }
 
     //enter point
@@ -56,19 +43,17 @@ public class GameManager {
             e.printStackTrace();
         }
         HashMap<Integer, List<Card>> playersToHands = (HashMap<Integer, List<Card>>) game.giveCards();
-        timerImpl.changeTurn();
+        changeTurnId();
         GameProcessNotifierImpl.sendGameStartMessage(room, playersToHands, game.getField(), game.getDeck());
     }
 
     public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) throws StartGameException {
-        System.out.println("validate move! id - " + playerIdTurn);
         ValidationResponse val = null;
+
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
             val = new ValidationResponse(false, false);
-            System.out.println("Vet1!");
         } else if (playerFrom.getId() == playerTo.getId()) {
             val = new ValidationResponse(true, false);
-            System.out.println("Vet2!");
 
 
         } else if (playerTo.getId() == -1) {
@@ -79,32 +64,26 @@ public class GameManager {
                     playerFrom.getPlayerHand().remove(playerFrom.getPlayerHand().size() - 1);
                     game.getField().add(card);
                 }
-                System.out.println("Vet3!");
 
             } else {
-                System.out.println("Vet4!");
 
                 val = new ValidationResponse(false, true);
             }
         } else if (playerFrom.getId() == -1) {
             if (game.getDeck().size() == 1) {
                 if (playerTo.getId() == mainPlayer.getId()) {
-                    System.out.println("Vet5!");
 
                     val = new ValidationResponse(true, true);
                 } else {
                     val = new ValidationResponse(false, false);
-                    System.out.println("Vet6!");
                 }
             } else {
                 Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
                 if (mainPlayer.getId() == playerTo.getId()) {
                     val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.SELF_HAND, FieldType.FIELD);
-                    System.out.println("Vet7!");
 
                 } else {
                     val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.ENEMY_HAND, FieldType.FIELD);
-                    System.out.println("Vet8!");
 
                 }
             }
@@ -123,11 +102,9 @@ public class GameManager {
             Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
             if (mainPlayer.getId() == playerFrom.getId()) {
                 val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), card, FieldType.ENEMY_HAND, FieldType.SELF_HAND);
-                System.out.println("Vet9!");
 
-            }
-            else {val = new ValidationResponse(false, false);
-                System.out.println("Vet10!");
+            } else {
+                val = new ValidationResponse(false, false);
 
             }
             if (val.isTurnRight()) {
@@ -137,19 +114,17 @@ public class GameManager {
         }
 
 
-        System.out.println("Will change turn? " + val.isNeedToChangeTurn());
-
-
         if (game.getDeck().size() == 0) {
-            stage = Stage.PLAY;
+            stage = Stage.BAD_MOVES;
             room.getGameManager().changeTurnId();
-            GameProcessNotifierImpl.startPlayStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
+            GameProcessNotifierImpl.startBadMovesStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
             throw new StartGameException();
         } else
-
             return val;
-
     }
+
+
+
 
 
     public ValidationResponse validateCardMovePlay(Room room, Player mainPlayer, Player playerFrom, Player playerTo, Card card) {
@@ -160,7 +135,7 @@ public class GameManager {
             val = new ValidationResponse(true, false);
         } else if (playerTo.getId() == -1) {
             if (game.getField().size() != 0) {
-                val = moveValidator.ValidatePlayMove(room, mainPlayer, game.getField().get(game.getField().size() - 1), card, FieldType.FIELD, FieldType.SELF_HAND);
+                val = moveValidator.ValidatePlayMove(room, mainPlayer, game.getField().get(game.getField().size() - 1), card);
                 if (val.isTurnRight()) {
                     playerFrom.getPlayerHand().remove(card);
                     game.getField().add(card);
@@ -268,14 +243,6 @@ public class GameManager {
         return stage;
     }
 
-    public TimerImpl getTimerImpl() {
-        return timerImpl;
-    }
-
-    public Map<Player, List<Card>> getPlayerHands() {
-        return playerHands;
-    }
-
 
     public void setGame(Game game) {
         this.game = game;
@@ -307,9 +274,6 @@ public class GameManager {
         System.out.println(player.getId());
 
 
-    /*    playerIdTurn = game.getPlayers().get(iterTurnId).getId();
-        iterTurnId++;
-        if(game.getPlayers().size() == iterTurnId) iterTurnId = 0;*/
     }
 
     private boolean checkIfPlayerWon() {
