@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 @RestController
 @Configuration
 @ComponentScan
-public class ConnectionControllerImpl implements ConnectionController {
+public class ConnectionControllerImpl {
     private final Set<Integer> registeredId = new HashSet<>();
     @Autowired
     private PlayersHandler playersHandler;
@@ -65,13 +65,10 @@ public class ConnectionControllerImpl implements ConnectionController {
             registeredId.add(id);
             try {
                 Player player = playersHandler.getPlayerById(id);
-                threader.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        Room room = roomHandler.getRoomById(roomId);
-                        room.addPlayer(player);
+                threader.submit(() -> {
+                    Room room = roomHandler.getRoomById(roomId);
+                    room.addPlayer(player);
 
-                    }
                 });
                 return ResponseEntity.status(200).body("Ok");
             } catch (NoSuchPlayerException e) {

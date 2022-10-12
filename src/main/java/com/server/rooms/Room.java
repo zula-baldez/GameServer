@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Room {
-    private String name;
-    private int maxPlayers;
+    private final String name;
+    private final int maxPlayers;
     private List<Player> players = new ArrayList<>();
     private int id;
     private final GameManager gameManager = new GameManager(this);
@@ -31,8 +31,7 @@ public class Room {
     }
 
     public void addPlayer(Player player) {
-        if (getMaxPlayers() == getAmountOfPlayers()) {
-        } else {
+        if (getMaxPlayers() != getAmountOfPlayers()) {
             players.add(player);
             if(getMaxPlayers() == getAmountOfPlayers()) {
                 gameManager.startGame();
@@ -57,15 +56,8 @@ public class Room {
         return players;
     }
 
-    public void setPlayers(List<Player> players) {
-        this.players = players;
-    }
-
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 }

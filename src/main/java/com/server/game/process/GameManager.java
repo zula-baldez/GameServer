@@ -7,7 +7,6 @@ import com.server.exception.StartGameException;
 import com.server.game.process.data.*;
 import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
-import com.server.game.process.Timer.TimerImpl;
 import com.server.rooms.Room;
 
 import java.util.ArrayList;
@@ -50,13 +49,14 @@ public class GameManager {
     public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) throws StartGameException {
         ValidationResponse val = null;
 
-        if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
-            val = new ValidationResponse(false, false);
-        } else if (playerFrom.getId() == playerTo.getId()) {
-            val = new ValidationResponse(true, false);
+        val = checkIsPlayerTurn(room, mainPlayer);
+        if (val != null) return val;
 
 
-        } else if (playerTo.getId() == -1) {
+        val = checkIfMovingCardToHimself(playerFrom, playerTo);
+        if (val != null) return val;
+
+        if (playerTo.getId() == -1) {
             Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
             if (game.getField().size() != 0) {
                 val = moveValidator.ValidateDistribution(room, mainPlayer, game.getField().get(game.getField().size() - 1), card, FieldType.FIELD, FieldType.SELF_HAND);
@@ -129,11 +129,18 @@ public class GameManager {
 
     public ValidationResponse validateCardMovePlay(Room room, Player mainPlayer, Player playerFrom, Player playerTo, Card card) {
         ValidationResponse val = null;
-        if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
-            val = new ValidationResponse(false, false);
-        } else if (playerFrom.getId() == playerTo.getId()) {
-            val = new ValidationResponse(true, false);
-        } else if (playerTo.getId() == -1) {
+
+        val = checkIsPlayerTurn(room, mainPlayer);
+        if (val != null) return val;
+
+
+        val = checkIfMovingCardToHimself(playerFrom, playerTo);
+        if (val != null) return val;
+
+        val = checkMovingCardToField(room, mainPlayer, playerFrom, playerTo, card);
+        if (val != null) return val;
+        /*
+        if (playerTo.getId() == -1) {
             if (game.getField().size() != 0) {
                 val = moveValidator.ValidatePlayMove(room, mainPlayer, game.getField().get(game.getField().size() - 1), card);
                 if (val.isTurnRight()) {
@@ -168,30 +175,73 @@ public class GameManager {
                     game.getField().clear();
                     System.out.println("Cleared field");
                     GameProcessNotifierImpl.showCardsBeforeDrop(room, game.getPlayersHands(), game.getField(), game.getDeck());
-                   /* try { //todo синхронизация с showCardsBeforeDrop
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }*/
+
                     if (checkIfPlayerWon()) {
                         changeTurnId();
                     }
                 }
             }
-        } else if (playerFrom.getId() == -1) {
-
-            val = new ValidationResponse(false, false);
-            mainPlayer.addFine();
-
-        } else {
-            val = new ValidationResponse(false, false);
-            mainPlayer.addFine();
-
-        }
+        } else*/
+        val = new ValidationResponse(false, false);
+        mainPlayer.addFine();
 
 
         return val;
 
+    }
+
+    private ValidationResponse checkIsPlayerTurn(Room room, Player mainPlayer) {
+        if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
+            return new ValidationResponse(false, false);
+        }
+        return null;
+    }
+
+    private ValidationResponse checkIfMovingCardToHimself(Player playerFrom, Player playerTo) {
+        if (playerFrom.getId() == playerTo.getId()) {
+            return new ValidationResponse(true, false);
+        }
+        return null;
+    }
+
+    private ValidationResponse checkMovingCardToField(Room room, Player mainPlayer, Player playerFrom, Player playerTo, Card card) {
+        ValidationResponse val = null;
+        if (playerTo.getId() == -1) {
+            if (game.getField().size() != 0) {
+                val = moveValidator.ValidatePlayMove(room, mainPlayer, game.getField().get(game.getField().size() - 1), card);
+                if (val.isTurnRight()) {
+                    playerFrom.getPlayerHand().remove(card);
+                    game.getField().add(card);
+                    checkForPenki(playerFrom);
+                    if (game.getField().size() == activePlayers.size()) {
+                        game.getField().clear();
+                        val = new ValidationResponse(true, false);
+
+                        System.out.println("Cleared field");
+/*
+                        GameProcessNotifierImpl.showCardsBeforeDrop(room, game.getPlayersHands(), game.getField(), game.getDeck());
+*/
+                        if (checkIfPlayerWon()) {
+                            changeTurnId();
+                        }
+                    }
+                }
+            } else {
+                val = new ValidationResponse(true, true);
+                playerFrom.getPlayerHand().remove(card);
+                game.getField().add(card);
+                checkForPenki(playerFrom);
+            }
+        }
+        return val;
+    }
+
+    private void checkForPenki(Player playerFrom) {
+        if (playerFrom.getPlayerHand().size() == playerFrom.getAmountOfPenki()) {
+            for (Card c : playerFrom.getPlayerHand()) {
+                c.isPenek = false;
+            }
+        }
     }
 
     public Action getCard(int playerId) {
@@ -201,7 +251,6 @@ public class GameManager {
             hasTakenCardFromDeck = true;
         }
         if (game.getDeck().size() != 0 && playerId == playerIdTurn) {
-            System.out.println("and player id is Correct!!!!!!");
             Card card = game.getDeck().get(game.getDeck().size() - 1);
             game.getDeck().remove(card);
             game.getField().add(card);
@@ -222,14 +271,6 @@ public class GameManager {
         } else return null;
     }
 
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public MoveValidator getMoveValidator() {
-        return moveValidator;
-    }
 
     public int getPlayerTurn() {
         return playerIdTurn;
@@ -262,16 +303,13 @@ public class GameManager {
             } else {
                 player = activePlayers.get(0);
                 activePlayers.remove(0);
-                System.out.println(player.getId());
                 activePlayers.add(player);
                 break;
             }
         }
-        System.out.println("pf!");
         if (player == null) return;
 
         playerIdTurn = player.getId();
-        System.out.println(player.getId());
 
 
     }
