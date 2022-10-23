@@ -1,17 +1,22 @@
 package com.server.controllers;
 
-import com.server.Validators.ValidationResponse;
-import com.server.database.PlayersHandler;
+import com.server.database.DBController;
+import com.server.database.PlayerAccount;
+import com.server.util.dto.*;
+import com.server.validators.ValidationResponse;
 import com.server.exception.NoSuchCardException;
 import com.server.exception.NoSuchPlayerException;
 import com.server.exception.StartGameException;
-import com.server.game.process.data.*;
+import com.server.game.process.data.ActionTypes;
+import com.server.game.process.data.Stage;
+import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
 import com.server.rooms.Room;
 import com.server.rooms.RoomHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -31,13 +36,10 @@ import java.util.List;
 public class GameProcessController {
 
 
-    //todo нормальная бд
     @Autowired
     private RoomHandler roomHandler;
     @Autowired
-    private PlayersHandler playersHandler;
-/*    @Autowired
-    DBController dbController*/;
+    private DBController dbController;
     protected static final HashMap<Room, List<DeferredResult<Action>>> deferredResults = new HashMap<>();
     protected static final HashMap<Player, DeferredResult<Action>> playersAndTheirDeferredResults = new HashMap<>();
 
@@ -48,34 +50,34 @@ public class GameProcessController {
         try {
             Player mainPlayer;
             if (movingCardData.mainPlayerId() == -1) {
-                mainPlayer = new Player(-1);
+                Player player = new Player(-1, "", dbController);
+
+                mainPlayer = new Player(-1, "", dbController);
             } else {
-                mainPlayer = playersHandler.getPlayerById(movingCardData.mainPlayerId());
+                mainPlayer = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.mainPlayerId());
+                System.out.println(mainPlayer.getFines());
             }
 
             Player playerTo;
             if (movingCardData.playerTo() == -1) {
-                playerTo = new Player(-1);
+                playerTo = new Player(-1, "", dbController);
             } else {
-                playerTo = playersHandler.getPlayerById(movingCardData.playerTo());
+                playerTo = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.playerTo());
             }
 
 
 
             Player playerFrom;
             if (movingCardData.playerFrom() == -1) {
-                playerFrom = new Player(-1);
+                playerFrom = new Player(-1, "", dbController);
             } else {
-                playerFrom = playersHandler.getPlayerById(movingCardData.playerFrom());
+                playerFrom = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.playerFrom());
             }
 
 
 
             Room room = roomHandler.getRoomById(movingCardData.roomId());
             if(room.getGameManager().getStage() == Stage.PLAY) return;
-/*
-            System.out.println("playerFrom: " + playerFrom.getId() + " playerTo: " + playerTo.getId());
-*/
             ValidationResponse valRes = room.getGameManager().validateCardMoveRazd(room, mainPlayer, playerFrom, playerTo);
 
             Action act =  createAction(valRes, room);
@@ -102,31 +104,30 @@ public class GameProcessController {
         try {
             Player mainPlayer;
             if (movingCardData.mainPlayerId() == -1) {
-                mainPlayer = new Player(-1);
+                mainPlayer = new Player(-1, "", dbController);
             } else {
-                mainPlayer = playersHandler.getPlayerById(movingCardData.mainPlayerId());
+                mainPlayer = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.mainPlayerId());
             }
 
             Player playerTo;
             if (movingCardData.playerTo() == -1) {
-                playerTo = new Player(-1);
+                playerTo = new Player(-1, "", dbController);
             } else {
-                playerTo = playersHandler.getPlayerById(movingCardData.playerTo());
+                playerTo = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.playerTo());
             }
 
 
 
             Player playerFrom;
             if (movingCardData.playerFrom() == -1) {
-                playerFrom = new Player(-1);
+                playerFrom = new Player(-1, "", dbController);
             } else {
-                playerFrom = playersHandler.getPlayerById(movingCardData.playerFrom());
+                playerFrom = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.playerFrom());
             }
 
 
 
             Room room = roomHandler.getRoomById(movingCardData.roomId());
-            System.out.println(room.getGameManager().getStage());
             if(room.getGameManager().getStage() == Stage.RAZDACHA) return;
             ValidationResponse valRes = room.getGameManager().validateCardMovePlay(room, mainPlayer, playerFrom, playerTo, mainPlayer.getCardById(movingCardData.card()));
 
@@ -153,7 +154,6 @@ public class GameProcessController {
         Room room = roomHandler.getRoomById(getCardData.roomId());
         System.out.println(room.getId());
         if(room.getGameManager().getGame().getDeck().size() == 0) return;
-        System.out.println("room deck is not null!!!");
         Action act =  room.getGameManager().getCard(getCardData.playerId());
         for (var def: deferredResults.get(room)) {
             def.setResult(act);
@@ -167,7 +167,7 @@ public class GameProcessController {
         if(room.getGameManager().getGame().getField().size() == 0) return; //to skip useless request
         Action act = null;
         try {
-            act = room.getGameManager().getCardFromField(getCardData.playerId(), playersHandler.getPlayerById(getCardData.playerId()));
+            act = room.getGameManager().getCardFromField(getCardData.playerId(), roomHandler.getRoomById(getCardData.roomId()).getPlayerById(getCardData.playerId()));
         } catch (NoSuchPlayerException e) {
             e.printStackTrace();
             return;
@@ -176,6 +176,24 @@ public class GameProcessController {
             def.setResult(act);
         }
     }
+
+    @ResponseBody
+    @RequestMapping(value = "/game/fine_for_player", method = RequestMethod.POST)
+    public void addFineForPlayer(@RequestBody MovingCardData movingCardData) {
+        if(movingCardData.playerTo() != -1) return;
+        Room room = roomHandler.getRoomById(movingCardData.roomId());
+        if(movingCardData.playerFrom() != movingCardData.mainPlayerId()) return;
+        try {
+            Player playerFrom = room.getPlayerById(movingCardData.playerFrom());
+            Card card = playerFrom.getCardById(movingCardData.card());
+            room.getGameManager().giveFine(room,   playerFrom, card);
+        } catch (NoSuchPlayerException | NoSuchCardException e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+
+
 
 
 
@@ -244,5 +262,16 @@ public class GameProcessController {
             );
         }
         return action;
+    }
+
+
+
+    @ResponseBody
+    @RequestMapping(value = "/game/names", method = RequestMethod.POST)
+    public NamesData login(@RequestBody int roomId) {
+
+        Room room = roomHandler.getRoomById(roomId);
+        return new NamesData(room.getNames());
+
     }
 }

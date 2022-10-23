@@ -1,15 +1,15 @@
-package com.server.Validators;
+package com.server.validators;
 
+import com.server.game.process.PlayerHandler;
 import com.server.game.process.data.FieldType;
 import com.server.game.process.data.Suit;
 import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
 import com.server.rooms.Room;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
 public class MoveValidator {
-
 
     public ValidationResponse ValidatePlayMove(Room room, Player player, Card preCard, Card postcard) {
         ValidationResponse val = null;
@@ -31,7 +31,7 @@ public class MoveValidator {
             if (postcard.suit == Suit.PICK && postcard.attack > preCard.attack) {
                 return new ValidationResponse(true, true);
             } else {
-                player.addFine();
+                 PlayerHandler.addFine(player);
                 return new ValidationResponse(false, false);
             }
         }
@@ -44,7 +44,7 @@ public class MoveValidator {
                 return new ValidationResponse(true, true);
             } else {
 
-                player.addFine();
+                PlayerHandler.addFine(player);
                 return new ValidationResponse(false, false);
             }
         }
@@ -57,7 +57,7 @@ public class MoveValidator {
 
         } else {
 
-            player.addFine();
+            PlayerHandler.addFine(player);
             return new ValidationResponse(false, false);
         }
     }
@@ -106,6 +106,8 @@ public class MoveValidator {
     private ValidationResponse checkIfFieldBeforeEnemy(Room room, Player player, Card preCard, Card postcard, FieldType
             fieldTypeAfter, FieldType fieldTypeBefore) {
         if (fieldTypeBefore == FieldType.ENEMY_HAND) {
+            PlayerHandler.addFine(player);
+
             return new ValidationResponse(false, false);
         }
         return null;
@@ -138,7 +140,7 @@ public class MoveValidator {
 
 
                 if (postCard.attack - previousCard.attack == 1 || (previousCard.attack == 14 && postCard.attack == 6)) {
-                    player.addFine();
+                    PlayerHandler.addFine(player);
                     return new ValidationResponse(false, false);
                 }
             }
@@ -150,7 +152,7 @@ public class MoveValidator {
             fieldTypeAfter, FieldType fieldTypeBefore) {
         if (fieldTypeBefore == FieldType.SELF_HAND) {
 
-            player.addFine();
+            PlayerHandler.addFine(player);
             return new ValidationResponse(false, false);
         }
         return null;
@@ -162,7 +164,7 @@ public class MoveValidator {
                 fieldTypeAfter == FieldType.ENEMY_HAND && fieldTypeBefore == FieldType.FIELD)
             return new ValidationResponse(true, false);
         if ((fieldTypeAfter == FieldType.ENEMY_HAND)) {
-            player.addFine();
+            PlayerHandler.addFine(player);
             return new ValidationResponse(false, false);
         }
 
@@ -180,7 +182,7 @@ public class MoveValidator {
             if (prCard == null || prCard.isPenek) continue;
 
             if (postcard.attack - prCard.attack == 1 || (prCard.attack == 14 && postcard.attack == 6)) {
-                player.addFine();
+                PlayerHandler.addFine(player);
                 return new ValidationResponse(false, false);
             }
         }

@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 //class that creates shaffled deck for game
 public class CardManager {
-    private static final int CARD_NUMBER = 14;
+    private static final int CARD_NUMBER = 8;
 
     public static List<Card> getShuffledDeck() {
         List<Card> deck = new ArrayList<>();

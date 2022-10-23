@@ -1,5 +1,7 @@
-package com.server.game.process.data;
+package com.server.util.dto;
 
+import com.server.game.process.data.ActionTypes;
+import com.server.game.process.data.Suit;
 import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
 

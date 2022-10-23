@@ -1,23 +1,22 @@
 package com.server.controllers;
 
-import com.server.database.PlayersHandler;
-import com.server.exception.NoSuchPlayerException;
-import com.server.game.process.data.RegisterAnswer;
+import com.server.database.DBController;
+import com.server.database.PlayerAccount;
+import com.server.exception.RegisteredLoginException;
 import com.server.game.process.util.Player;
 import com.server.rooms.Room;
 import com.server.rooms.RoomHandler;
 import com.server.rooms.RoomInfo;
 import com.server.rooms.RoomListConverter;
+import com.server.util.dto.RegisterAnswer;
+import com.server.util.dto.RegisterNewAccountData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,15 +30,12 @@ import java.util.concurrent.Executors;
 @Configuration
 @ComponentScan
 public class ConnectionControllerImpl {
-    private final Set<Integer> registeredId = new HashSet<>();
-    @Autowired
-    private PlayersHandler playersHandler;
-    private final ExecutorService threader = Executors.newCachedThreadPool();
-    private static int ID = 0;
+
     @Autowired
     private RoomHandler roomHandler;
-/*    @Autowired
-    DBController dbController;*/
+    @Autowired
+    DBController dbController;
+
     @ResponseBody
     @RequestMapping(value = "/connection/room_list", method = RequestMethod.GET)
     public List<RoomInfo> roomList() {
@@ -49,31 +45,18 @@ public class ConnectionControllerImpl {
 
 
     @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/connection/register", method = RequestMethod.GET)
-    public RegisterAnswer register() {
-        ID++;
-        Player player = new Player(ID);
-        playersHandler.addPlayer(player);
-        return new RegisterAnswer(ID);
-    }
-
-    @ResponseBody
     @RequestMapping(value = "/connection/enter_room", method = RequestMethod.GET)
     public ResponseEntity enterRoom(@RequestParam int id, @RequestParam int roomId) {
-        if (!registeredId.contains(id) && roomHandler.getRoomById(roomId) != null) {
-            registeredId.add(id);
-            try {
-                Player player = playersHandler.getPlayerById(id);
-                threader.submit(() -> {
-                    Room room = roomHandler.getRoomById(roomId);
-                    room.addPlayer(player);
+        if (roomHandler.getRoomById(roomId) != null) {
+            String name = dbController.getLoginById(id);
+            int fines = dbController.getByLogin(name).getFineNumber();
+            System.out.println(name);
+            Player player = new Player(id, name, dbController);
+            player.setFines(Math.max(fines, 0));
+            Room room = roomHandler.getRoomById(roomId);
+            room.addPlayer(player);
 
-                });
-                return ResponseEntity.status(200).body("Ok");
-            } catch (NoSuchPlayerException e) {
-                return ResponseEntity.status(400).body("Check your id!");
-            }
+            return ResponseEntity.status(200).body("Ok");
         } else return ResponseEntity.status(400).body("Wrong query");
     }
 
@@ -88,7 +71,36 @@ public class ConnectionControllerImpl {
         } catch (Throwable e) {
             return ResponseEntity.status(400).body(e.getMessage()); //todo система ошибок при обработке запросов
         }
-}
+    }
 
+    @ResponseBody
+    @RequestMapping(value = "/connection/register_new_account", method = RequestMethod.POST)
+    public ResponseEntity<RegisterAnswer> register(@RequestBody RegisterNewAccountData registerNewAccountData) {
+        PlayerAccount playerAccount = new PlayerAccount(registerNewAccountData.login(), registerNewAccountData.password(), 0);
+        try {
+            dbController.addPlayerAccount(playerAccount);
+            return ResponseEntity.status(200).body(new RegisterAnswer((int) playerAccount.getId().longValue()));
+        } catch (RegisteredLoginException e) {
+            return ResponseEntity.status(400).body(new RegisterAnswer(-1));
+        }
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/connection/login", method = RequestMethod.POST)
+    public ResponseEntity<RegisterAnswer> login(@RequestBody RegisterNewAccountData registerNewAccountData) {
+        PlayerAccount playerAccount = dbController.getByLogin(registerNewAccountData.login());
+        if (playerAccount == null) {
+            return ResponseEntity.status(400).body(new RegisterAnswer(-1));
+        } else {
+            if (registerNewAccountData.password().equals(playerAccount.getPassword())) {
+                return ResponseEntity.status(200).body(new RegisterAnswer((int) (playerAccount.getId()).longValue()));
+            } else {
+
+                return ResponseEntity.status(401).body(new RegisterAnswer(-1));
+
+            }
+        }
+
+    }
 
 }

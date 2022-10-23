@@ -1,12 +1,17 @@
 package com.server.game.process.util;
 
 
+import com.server.database.DBController;
 import com.server.exception.NoSuchCardException;
-import com.server.game.process.data.Action;
-import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
-
 public class Player {
     private int id;
     private String name;
@@ -15,8 +20,11 @@ public class Player {
     private boolean isEnemy = true;
     private int amountOfPenki = 2;
     private boolean hasCardFromDeck = false;
-    public Player(int id) {
+    private DBController dbController;
+    public Player(int id, String name, DBController dbController) {
         this.id = id;
+        this.name = name;
+        this.dbController = dbController;
     }
 
     public Card getCardById(int id) throws NoSuchCardException {
@@ -57,7 +65,13 @@ public class Player {
 
 
     public void addFine() {
+        dbController.addFine(name);
+
         fines++;
+    }
+    public void decFine() {
+        dbController.decFine(name);
+        fines--;
     }
 
     public boolean isEnemy() {

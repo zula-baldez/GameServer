@@ -31,16 +31,8 @@ public class Game {
         return deck;
     }
 
-    public void setField(List<Card> field) {
-        this.field = field;
-    }
-
     public void setKozir(Suit kozir) {
         this.kozir = kozir;
-    }
-
-    public void setDeck(List<Card> deck) {
-        this.deck = deck;
     }
 
     public Map<Integer, List<Card>> getPlayersHands() {

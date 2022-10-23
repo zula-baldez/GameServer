@@ -1,4 +1,4 @@
-package com.server.game.process.data;
+package com.server.util.dto;
 
 public record MovingCardData(int roomId, int mainPlayerId, int playerFrom, int playerTo, int card) {
 }

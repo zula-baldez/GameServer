@@ -1,16 +1,18 @@
 package com.server.game.process;
 
-import com.server.Validators.MoveValidator;
-import com.server.Validators.ValidationResponse;
+import com.server.validators.MoveValidator;
+import com.server.validators.ValidationResponse;
 import com.server.controllers.GameProcessNotifierImpl;
 import com.server.exception.StartGameException;
 import com.server.game.process.data.*;
 import com.server.game.process.util.Card;
 import com.server.game.process.util.Player;
 import com.server.rooms.Room;
+import com.server.util.dto.Action;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /*
@@ -18,7 +20,6 @@ import java.util.List;
  handle info like turn faze, not info about cards on the field etc., there is Game class for that
  so there is a GameManager and Game classes for every Room class
  */
-
 public class GameManager {
     private final Room room;
     private final MoveValidator moveValidator = new MoveValidator();
@@ -36,11 +37,7 @@ public class GameManager {
     //enter point
     //after that Room class do nothing
     public void startGame() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         HashMap<Integer, List<Card>> playersToHands = (HashMap<Integer, List<Card>>) game.giveCards();
         changeTurnId();
         GameProcessNotifierImpl.sendGameStartMessage(room, playersToHands, game.getField(), game.getDeck());
@@ -73,9 +70,20 @@ public class GameManager {
 
     private ValidationResponse checkForEndOfRazd(ValidationResponse val) throws StartGameException {
         if (game.getDeck().size() == 0) {
-            stage = Stage.PLAY;
+/*
             room.getGameManager().changeTurnId();
-            GameProcessNotifierImpl.startPlayStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
+*/
+            if(checkForFines()) {
+                stage = Stage.BAD_MOVES;
+
+                GameProcessNotifierImpl.startBadMovesStage(room, game.getPlayersHands(), game.getField(), game.getDeck(), getGame().getPlayers().get(currentPlayerGettingFine).getId());
+            } else {
+                stage = Stage.PLAY;
+
+                GameProcessNotifierImpl.startPlayStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
+
+            }
+
             throw new StartGameException();
         } else
             return val;
@@ -111,7 +119,7 @@ public class GameManager {
                     val = new ValidationResponse(false, false);
                 }
             } else {
-                Card postcard = getGame().getField().get(room.getGameManager().getGame().getField().size() - 1);
+                Card postcard = getGame().getField().get(getGame().getField().size() - 1);
                 if (mainPlayer.getId() == playerTo.getId()) {
                     val = moveValidator.ValidateDistribution(room, mainPlayer, playerTo.getPlayerHand().get(playerTo.getPlayerHand().size() - 1), postcard, FieldType.SELF_HAND, FieldType.FIELD);
 
@@ -164,8 +172,9 @@ public class GameManager {
 
         val = checkMovingCardToField(room, mainPlayer, playerFrom, playerTo, card);
         if (val != null) return val;
+        PlayerHandler.addFine(mainPlayer);
+
         val = new ValidationResponse(false, false);
-        mainPlayer.addFine();
 
 
         return val;
@@ -174,6 +183,8 @@ public class GameManager {
 
     private ValidationResponse checkIsPlayerTurn(Room room, Player mainPlayer) {
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
+            PlayerHandler.addFine(mainPlayer);
+
             return new ValidationResponse(false, false);
         }
         return null;
@@ -196,13 +207,11 @@ public class GameManager {
                     game.getField().add(card);
                     checkForPenki(playerFrom);
                     if (game.getField().size() == activePlayers.size()) {
+                        GameProcessNotifierImpl.showCardsBeforeDrop(room, game.getPlayersHands(), game.getField(), game.getDeck());
                         game.getField().clear();
                         val = new ValidationResponse(true, false);
 
                         System.out.println("Cleared field");
-/*
-                        GameProcessNotifierImpl.showCardsBeforeDrop(room, game.getPlayersHands(), game.getField(), game.getDeck());
-*/
                         if (checkIfPlayerWon()) {
                             changeTurnId();
                         }
@@ -303,4 +312,94 @@ public class GameManager {
             return false;
         }
     }
+
+
+    private final HashSet<Integer> gaveFine = new HashSet<>();
+    private int currentPlayerGettingFine = 0;
+    private HashSet<Player> playersInGame = new HashSet<>();
+    public void giveFine(Room room, Player playerFrom, Card card) {
+        if(checkForEndOfFines()) return;
+        System.out.println("Fines: " + playerFrom.getFines());
+        System.out.println("contains: " + gaveFine.contains(playerFrom.getId()));
+        System.out.println("getting fine : " + game.getPlayers().get(currentPlayerGettingFine).getId());
+        System.out.println("giving fine " + playerFrom.getId());
+        System.out.println(card.isPenek);
+        System.out.println("is active : " +  playersInGame.contains(playerFrom));
+        playersInGame.remove(game.getPlayers().get(currentPlayerGettingFine));
+        if(!gaveFine.contains(playerFrom.getId()) && (game.getPlayers().get(currentPlayerGettingFine).getId() != playerFrom.getId()) && !card.isPenek && playersInGame.contains(playerFrom)) {
+            gaveFine.add(playerFrom.getId());
+            game.getPlayers().get(currentPlayerGettingFine).getPlayerHand().add(card);
+            playerFrom.getPlayerHand().remove(card);
+
+        } else {
+            return;
+        }
+        if(gaveFine.size() == playersInGame.size()) {
+            System.out.println("DEC!");
+            game.getPlayers().get(currentPlayerGettingFine).decFine();
+            gaveFine.clear();
+            playersInGame.clear();
+            renewPlayersInGame();
+        }
+        if(!checkForEndOfFines())
+        GameProcessNotifierImpl.sendCurrentTable(room, game.getPlayersHands(), game.getField(), game.getDeck(), getGame().getPlayers().get(currentPlayerGettingFine).getId());
+    }
+
+    private boolean checkForEndOfFines() {
+        if(stage != Stage.BAD_MOVES) return true;
+
+
+        while(currentPlayerGettingFine < game.getPlayers().size()) {
+            if(game.getPlayers().get(currentPlayerGettingFine).getFines() != 0) {
+                renewPlayersInGame();
+                playersInGame.remove(game.getPlayers().get(currentPlayerGettingFine));
+                if(playersInGame.size()==0) {
+                    getGame().getPlayers().get(currentPlayerGettingFine).setFines(0);
+
+                } else {
+                    break;
+                }
+            }
+            currentPlayerGettingFine++;
+        }
+        System.out.println(currentPlayerGettingFine);
+        renewPlayersInGame();
+        if(currentPlayerGettingFine >= game.getPlayers().size()) {
+            changeTurnId();
+            stage = Stage.PLAY;
+            GameProcessNotifierImpl.startPlayStage(room, game.getPlayersHands(), game.getField(), game.getDeck());
+            for(Player player : activePlayers) {
+                checkForPenki(player);
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    private boolean checkForFines() {
+        boolean flg = false;
+        for(int i = 0; i < game.getPlayers().size(); i++) {
+            if(getGame().getPlayers().get(i).getPlayerHand().size() > getGame().getPlayers().get(i).getAmountOfPenki()) {
+                playersInGame.add(getGame().getPlayers().get(i));
+            }
+            if(getGame().getPlayers().get(i).getFines() != 0 && !flg) {
+                currentPlayerGettingFine = i;
+                flg = true;
+
+            }
+        }
+        return flg;
+    }
+
+    private void renewPlayersInGame() {
+        for(int i = 0; i < game.getPlayers().size(); i++) {
+            if(getGame().getPlayers().get(i).getPlayerHand().size() > getGame().getPlayers().get(i).getAmountOfPenki()) {
+                playersInGame.add(getGame().getPlayers().get(i));
+            }
+        }
+
+    }
+
+
 }

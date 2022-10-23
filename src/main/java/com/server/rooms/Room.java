@@ -5,7 +5,11 @@ import com.server.game.process.GameManager;
 import com.server.game.process.util.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Room {
     private final String name;
@@ -13,7 +17,7 @@ public class Room {
     private List<Player> players = new ArrayList<>();
     private int id;
     private final GameManager gameManager = new GameManager(this);
-
+    private ExecutorService threader = Executors.newFixedThreadPool(4);
     public Room(int maxPlayers, String name, int id) {
         this.maxPlayers = maxPlayers;
         this.name = name;
@@ -34,11 +38,18 @@ public class Room {
         if (getMaxPlayers() != getAmountOfPlayers()) {
             players.add(player);
             if(getMaxPlayers() == getAmountOfPlayers()) {
-                gameManager.startGame();
+                threader.submit(gameManager::startGame);
             }
         }
 
 
+    }
+    public Map<Integer, String> getNames() {
+        HashMap<Integer, String> names=  new HashMap<>();
+        for(Player player : players) {
+            names.put(player.getId(), player.getName());
+        }
+        return names;
     }
 
 

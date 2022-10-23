@@ -8,7 +8,7 @@ import java.util.Set;
 
 @Component
 public class RoomHandler {
-    private int id = 0;
+    private int id = 1;
     private final Set<Room> rooms = new HashSet<>();
     public void createRoom(int maxPlayers, String name) throws EnterRoomException {
         if(maxPlayers <= 0 || name == null) throw new EnterRoomException();
