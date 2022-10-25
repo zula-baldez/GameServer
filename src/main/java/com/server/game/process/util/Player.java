@@ -11,6 +11,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 public class Player {
     private int id;
@@ -66,7 +67,6 @@ public class Player {
 
     public void addFine() {
         dbController.addFine(name);
-
         fines++;
     }
     public void decFine() {
