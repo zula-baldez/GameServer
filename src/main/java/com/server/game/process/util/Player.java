@@ -67,6 +67,7 @@ public class Player {
 
     public void addFine() {
         dbController.addFine(name);
+        System.out.println("Huevaya for: " + name );
         fines++;
     }
     public void decFine() {
