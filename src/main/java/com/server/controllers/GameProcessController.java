@@ -50,12 +50,10 @@ public class GameProcessController {
         try {
             Player mainPlayer;
             if (movingCardData.mainPlayerId() == -1) {
-                Player player = new Player(-1, "", dbController);
-
                 mainPlayer = new Player(-1, "", dbController);
             } else {
                 mainPlayer = roomHandler.getRoomById(movingCardData.roomId()).getPlayerById(movingCardData.mainPlayerId());
-                System.out.println(mainPlayer.getFines());
+
             }
 
             Player playerTo;
@@ -78,7 +76,7 @@ public class GameProcessController {
 
             Room room = roomHandler.getRoomById(movingCardData.roomId());
             if(room.getGameManager().getStage() == Stage.PLAY) return;
-            ValidationResponse valRes = room.getGameManager().validateCardMoveRazd(room, mainPlayer, playerFrom, playerTo);
+            ValidationResponse valRes = room.getGameManager().validateCardMoveRazd(mainPlayer, playerFrom, playerTo);
 
             Action act =  createAction(valRes, room);
 

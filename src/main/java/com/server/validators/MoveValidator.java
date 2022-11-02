@@ -74,33 +74,45 @@ public class MoveValidator {
     public ValidationResponse ValidateDistribution(Room room, Player player, Card preCard, Card postcard, FieldType
             fieldTypeAfter, FieldType fieldTypeBefore) {
         ValidationResponse val = null;
+        System.out.println("preCard: " +preCard.id);
 
+        System.out.println("postCard: " +postcard.id);
         val = checkIfFieldBeforeEnemy(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
-
+        System.out.println("it is not 1");
 
         val = checkIfDroppingToAnotherPlayerCorrect(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
+        System.out.println("it is not 2");
 
 
         val = checkIfPlayerCouldPutCardToAnotherPlayer(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
+        System.out.println("it is not 3");
 
 
         val = checkIfPlayerGettingCardFromField(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
+        System.out.println("it is not 4");
 
         val = checkIfMovingCardFromFieldToEnemyIsCorrect(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
+        System.out.println("it is not 5");
+
 
         val = checkIfPLayerCouldPutCardToEnemy(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
+        System.out.println("it is not 6");
+
 
         val = checkIfPuttingCardToSelfDontChangeTurn(room, player, preCard, postcard, fieldTypeAfter, fieldTypeBefore);
         if (val != null) return val;
+        System.out.println("it is not 7");
+
 
         //player put card to himself and there was no reason to put card to another player
         return new ValidationResponse(true, true);
+
     }
 
     private ValidationResponse checkIfFieldBeforeEnemy(Room room, Player player, Card preCard, Card postcard, FieldType
@@ -115,7 +127,7 @@ public class MoveValidator {
 
     private ValidationResponse checkIfDroppingToAnotherPlayerCorrect(Room room, Player player, Card preCard, Card postcard, FieldType
             fieldTypeAfter, FieldType fieldTypeBefore) {
-        if (fieldTypeBefore == FieldType.SELF_HAND &&
+        if ((fieldTypeBefore == FieldType.SELF_HAND || fieldTypeBefore == FieldType.FIELD) &&
                 fieldTypeAfter == FieldType.ENEMY_HAND && (postcard.attack - preCard.attack == 1 || (preCard.attack == 14 && postcard.attack == 6))) {
             return new ValidationResponse(true, false);
         }
@@ -129,17 +141,16 @@ public class MoveValidator {
                 if (enemy.equals(player)) {
                     continue;
                 }
-                Card postCard = player.getPlayerHand().get(player.getPlayerHand().size() - 1);
                 Card previousCard;
                 if (enemy.getPlayerHand().size() > 0)
                     previousCard = enemy.getPlayerHand().get(enemy.getPlayerHand().size() - 1);
                 else
                     previousCard = null;
-                if (postCard.isPenek || previousCard == null || previousCard.isPenek || player.getPlayerHand().size() == player.getAmountOfPenki() + 1)
+                if (postcard.isPenek || previousCard == null || previousCard.isPenek || player.getPlayerHand().size() <= player.getAmountOfPenki() + 1)
                     continue;
 
 
-                if (postCard.attack - previousCard.attack == 1 || (previousCard.attack == 14 && postCard.attack == 6)) {
+                if ((postcard.attack - previousCard.attack == 1) || (previousCard.attack == 14 && postcard.attack == 6)) {
                     PlayerHandler.addFine(player);
                     return new ValidationResponse(false, false);
                 }
@@ -176,7 +187,7 @@ public class MoveValidator {
             if (enemy.getId() == player.getId()) {
                 continue;
             }
-            if (enemy.getPlayerHand().size() == 0) continue;
+            if (enemy.getPlayerHand().size() <= enemy.getAmountOfPenki()) continue;
             Card prCard;
             prCard = enemy.getPlayerHand().get(enemy.getPlayerHand().size() - 1);
             if (prCard == null || prCard.isPenek) continue;

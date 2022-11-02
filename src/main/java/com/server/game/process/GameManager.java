@@ -43,39 +43,43 @@ public class GameManager {
         GameProcessNotifierImpl.sendGameStartMessage(room, playersToHands, game.getField(), game.getDeck());
     }
 
-    public ValidationResponse validateCardMoveRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) throws StartGameException {
+    public ValidationResponse validateCardMoveRazd(Player mainPlayer, Player playerFrom, Player playerTo) throws StartGameException {
+
+        System.out.println("MainPlayer:" + mainPlayer.getId());
+        System.out.println("playerFrom: " + playerFrom.getId());
+        System.out.println("playerTo: "+playerTo.getId());
+
         ValidationResponse val = null;
 
         val = checkIsPlayerTurn(room, mainPlayer);
         if (val != null) return checkForEndOfRazd(val);
-
+        System.out.println("mainPlayer is ok");
 
         val = checkIfMovingCardToHimself(playerFrom, playerTo);
         if (val != null) return checkForEndOfRazd(val);
+        System.out.println("not to himself");
 
 
-        val = checkIfPlayerToIsFieldRazd(room, mainPlayer, playerFrom, playerTo);
+        val = checkIfPlayerToIsFieldRazd(mainPlayer, playerFrom, playerTo);
         if (val != null) return checkForEndOfRazd(val);
+        System.out.println("PlayerTo is not field");
 
 
-        val = checkIfPlayerFromIsFieldRazd(room, mainPlayer, playerFrom, playerTo);
+        val = checkIfPlayerFromIsFieldRazd(mainPlayer, playerFrom, playerTo);
         if (val != null) return checkForEndOfRazd(val);
+        System.out.println("playerFrom is not field");
 
 
-        val = checkIfMovingFromToPlayerRazd(room, mainPlayer, playerFrom, playerTo);
+        val = checkIfMovingFromToPlayerRazd(mainPlayer, playerFrom, playerTo);
         return checkForEndOfRazd(val);
 
 
     }
 
     private ValidationResponse checkForEndOfRazd(ValidationResponse val) throws StartGameException {
-        if (game.getDeck().size() == 0) {
-/*
-            room.getGameManager().changeTurnId();
-*/
+        if (game.getDeck().size() == 0 && val.isTurnRight()) {
             if(checkForFines()) {
                 stage = Stage.BAD_MOVES;
-
                 GameProcessNotifierImpl.startBadMovesStage(room, game.getPlayersHands(), game.getField(), game.getDeck(), getGame().getPlayers().get(currentPlayerGettingFine).getId());
             } else {
                 stage = Stage.PLAY;
@@ -89,7 +93,7 @@ public class GameManager {
             return val;
     }
 
-    private ValidationResponse checkIfPlayerToIsFieldRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
+    private ValidationResponse checkIfPlayerToIsFieldRazd(Player mainPlayer, Player playerFrom, Player playerTo) {
         ValidationResponse val = null;
         if (playerTo.getId() == -1) {
             Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
@@ -101,14 +105,13 @@ public class GameManager {
                 }
 
             } else {
-
                 val = new ValidationResponse(false, true);
             }
         }
         return val;
     }
 
-    private ValidationResponse checkIfPlayerFromIsFieldRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
+    private ValidationResponse checkIfPlayerFromIsFieldRazd(Player mainPlayer, Player playerFrom, Player playerTo) {
         ValidationResponse val = null;
         if (playerFrom.getId() == -1) {
             if (game.getDeck().size() == 1) {
@@ -143,7 +146,7 @@ public class GameManager {
         return val;
     }
 
-    private ValidationResponse checkIfMovingFromToPlayerRazd(Room room, Player mainPlayer, Player playerFrom, Player playerTo) {
+    private ValidationResponse checkIfMovingFromToPlayerRazd(Player mainPlayer, Player playerFrom, Player playerTo) {
         ValidationResponse val = null;
         Card card = playerFrom.getPlayerHand().get(playerFrom.getPlayerHand().size() - 1);
         if (mainPlayer.getId() == playerFrom.getId()) {
@@ -184,7 +187,7 @@ public class GameManager {
     private ValidationResponse checkIsPlayerTurn(Room room, Player mainPlayer) {
         if (room.getGameManager().getPlayerTurn() != mainPlayer.getId()) {
             PlayerHandler.addFine(mainPlayer);
-
+            System.out.println("It is not right turn!");
             return new ValidationResponse(false, false);
         }
         return null;
@@ -192,6 +195,7 @@ public class GameManager {
 
     private ValidationResponse checkIfMovingCardToHimself(Player playerFrom, Player playerTo) {
         if (playerFrom.getId() == playerTo.getId()) {
+            System.out.println("From and to are equal");
             return new ValidationResponse(true, false);
         }
         return null;
@@ -389,6 +393,7 @@ public class GameManager {
 
             }
         }
+
         return flg;
     }
 
